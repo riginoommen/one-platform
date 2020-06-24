@@ -1,0 +1,14 @@
+.stat-name {
+  font-weight: 900;
+  color: #4c4c4c;
+
+  & span {
+    font-weight: initial;
+  }
+}
+
+.count-number {
+  color: #4285f4;
+  font-weight: 100;
+  font-size: 30px;
+}

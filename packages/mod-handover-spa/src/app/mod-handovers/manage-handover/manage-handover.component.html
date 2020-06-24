@@ -1,0 +1,29 @@
+<section class="block pf-u-mt-4xl">
+  {{handover | json}}
+  <form novalidate class="pf-c-form">
+    <div class="pf-c-select pf-m-expanded">
+      <span id="select-single-expanded-label" hidden>Choose one</span>
+      <button class="pf-c-select__toggle" type="button" id="select-single-expanded-toggle" aria-haspopup="true"
+        aria-expanded="true" aria-labelledby="select-single-expanded-label select-single-expanded-toggle">
+        <div class="pf-c-select__toggle-wrapper">
+          <span class="pf-c-select__toggle-text">Handover Type</span>
+        </div>
+        <span class="pf-c-select__toggle-arrow">
+          <i class="fas fa-caret-down" aria-hidden="true"></i>
+        </span>
+      </button>
+      <ul class="pf-c-select__menu" aria-labelledby="select-single-expanded-label" [(ngModel)]="handover.handover_type">
+        <li>
+          <button type="button" class="pf-c-select__menu-item" aria-pressed="false" value="l">Platform</button>
+        </li>
+        <li>
+          <button type="button" class="pf-c-select__menu-item" aria-pressed="false">Stopped</button>
+        </li>
+        <li>
+          <button type="button" class="pf-c-select__menu-item" aria-pressed="false">Down</button>
+        </li>
+      </ul>
+    </div>
+
+  </form>
+</section>
