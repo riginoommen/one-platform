@@ -24,23 +24,23 @@ export class HomeComponent implements OnInit {
   currentYearCount: Number = 0;
   activeTeamCount: Number = 0;
 
-  constructor (
+  constructor(
     private appService: AppService,
   ) { }
 
-  ngOnInit (): void {
+  ngOnInit(): void {
     this.tabs = this.modTabsExpansion.map( tab => tab.acronym );
     this.activeTab = this.tabs[ 0 ];
     this.getHandoversByDate( this.tabs[ 0 ], this.currentDate );
   }
 
   // Helper Function to format the Date to the 'MM-DD-YYYY'
-  formatDate ( date: any ) {
+  formatDate( date: any ) {
     return moment( date ).format( 'MM-DD-YYYY' );
   }
 
   // Function to Fetch the Handovers By Date
-  getHandoversByDate ( activeTab: any, date: any ) {
+  getHandoversByDate( activeTab: any, date: any ) {
     date = this.formatDate( date );
     this.appService.getHandoversByDate( date ).then( handovers => {
       this.allHandoversByDate = handovers.listHandoverByDate;
@@ -51,12 +51,12 @@ export class HomeComponent implements OnInit {
     this.loading = false;
   }
   // Percentage calculator helper method
-  percentCalculator ( count, total ) {
+  percentCalculator( count, total ) {
     return Math.round( ( count / total ) * 100 ).toString();
   }
 
   // Filter Handover by the selected type and generate the statistics
-  filterHandover ( tab ) {
+  filterHandover( tab ) {
     this.activeTab = tab;
     this.currentYearCount = this.allHandovers.count;
     this.allHandoversByDate = this.handoverList.filter( ( item ) => {

@@ -14,21 +14,21 @@ import { GraphQLModule } from './graphql.module';
   providedIn: 'root'
 } )
 export class AppService extends GraphQLModule {
-  constructor (
+  constructor(
     private apollo: Apollo,
   ) {
     super();
   }
 
   // GraphQL Query to fetch All the Handovers
-  getAllHandovers () {
+  getAllHandovers() {
     return this.apollo.watchQuery<HandoverResponse>( { query: listAllHandovers } )
       .result()
       .then( result => _.cloneDeep( result.data ) );
   }
 
   // GraphQL Query to fetch the handover by handover_id
-  getHandover ( handover_id: Number ) {
+  getHandover( handover_id: Number ) {
     return this.apollo.watchQuery<HandoverResponse>( {
       variables: {
         handover_id: Number( handover_id )
@@ -38,7 +38,7 @@ export class AppService extends GraphQLModule {
   }
 
   // GraphQL Query to fetch the handover and its associated cases
-  getHandoverWithCases ( handover_id: Number ) {
+  getHandoverWithCases( handover_id: Number ) {
     return this.apollo.watchQuery<HandoverResponse>( {
       variables: {
         handover_id: Number( handover_id )
@@ -49,93 +49,93 @@ export class AppService extends GraphQLModule {
 
 
   // GraphQL Query to fetch the handover by date
-  getHandoversByDate ( date: any ): Promise<HandoverResponse> {
-    return this.apollo.watchQuery<HandoverResponse>( { query: listHandoverByDate, variables: { date: date } } )
+  getHandoversByDate( date: any ): Promise<HandoverResponse> {
+    return this.apollo.watchQuery<HandoverResponse>( { query: listHandoverByDate, variables: { date } } )
       .result()
       .then( result => _.cloneDeep( result.data ) );
   }
 
   // GraphQL Query to fetch the platform counts
-  getAllPlatformCounts () {
+  getAllPlatformCounts() {
     return this.apollo.watchQuery<HandoverResponse>( { query: listAllPlatformCount } )
       .result()
       .then( result => _.cloneDeep( result.data.listAllPlatformCount ) );
   }
 
   // GraphQL Query to fetch the APS Counts
-  getAllAPSCounts () {
+  getAllAPSCounts() {
     return this.apollo.watchQuery<HandoverResponse>( { query: listAllAPSCount } )
       .result()
       .then( result => _.cloneDeep( result.data.listAllAPSCount ) );
   }
 
   // GraphQL Query to fetch the MPS Counts
-  getAllMPSCounts () {
+  getAllMPSCounts() {
     return this.apollo.watchQuery<HandoverResponse>( { query: listAllMPSCount } )
       .result()
       .then( result => _.cloneDeep( result.data.listAllMPSCount ) );
   }
 
   // GraphQL Query to fetch the ET Count
-  getAllETCounts () {
+  getAllETCounts() {
     return this.apollo.watchQuery<HandoverResponse>( { query: listAllETCount } )
       .result()
       .then( result => _.cloneDeep( result.data.listAllETCount ) );
   }
   // GraphQL Mutation to create case
-  createCase ( cases: Case ): Observable<any> {
+  createCase( cases: Case ): Observable<any> {
     return this.apollo
       .mutate( { variables: { input: cases }, mutation: createCase } )
       .pipe( map( ( result: any ) => result.data ) );
   }  // GraphQL Mutation to update case
-  updateCase ( cases: Case ): Observable<any> {
+  updateCase( cases: Case ): Observable<any> {
     return this.apollo
       .mutate( { variables: { input: cases }, mutation: updateCase } )
       .pipe( map( ( result: any ) => result.data.updateCase ) );
   }
   // GraphQL Mutation to remove case
-  removeCase ( case_id: Number ) {
+  removeCase( case_id: Number ) {
     return this.apollo.mutate<HandoverResponse>( {
-      variables: { case_id: case_id }, mutation: removeCase
+      variables: { case_id }, mutation: removeCase
     } );
   }
   // GraphQL Mutation to Create handover
-  createHandover ( handover: Handover ): Observable<any> {
+  createHandover( handover: Handover ): Observable<any> {
     return this.apollo
       .mutate( { variables: { input: handover }, mutation: createHandover } )
       .pipe( map( ( result: any ) => result.data ) );
   }
   // GraphQL Mutation to remove handover
-  removeHandover ( handover_id: Number ) {
+  removeHandover( handover_id: Number ) {
     return this.apollo.mutate<HandoverResponse>( {
-      variables: { handover_id: handover_id }, mutation: removeHandover
+      variables: { handover_id }, mutation: removeHandover
     } );
   }
   // GraphQL Mutation to update handover
-  updateHandover ( handover: Handover ): Observable<any> {
+  updateHandover( handover: Handover ): Observable<any> {
     return this.apollo
       .mutate( { variables: { input: handover }, mutation: updateHandover } )
       .pipe( map( ( result: any ) => result.data.updateHandover ) );
   }
   // GraphQL Query to fetch the SBRs assiciated with the case number
-  getSBRsByCase ( casenumber: any ): Promise<HandoverResponse> {
-    return this.apollo.watchQuery<HandoverResponse>( { query: listCaseSBRs, variables: { casenumber: casenumber } } )
+  getSBRsByCase( casenumber: any ): Promise<HandoverResponse> {
+    return this.apollo.watchQuery<HandoverResponse>( { query: listCaseSBRs, variables: { casenumber } } )
       .result()
       .then( result => _.cloneDeep( result.data ) );
   }
 
   // GraphQL Method to send an email
-  sendHandoverEmail ( email: any ): Observable<any> {
+  sendHandoverEmail( email: any ): Observable<any> {
     return this.apollo
       .mutate( { variables: { input: email }, mutation: sendHandoverEmail } )
       .pipe( map( ( result: any ) => result.data ) );
   }
 
   // GraphQL Query to fetch the Case from SFDC
-  listSFDCCase ( casenumber: Number ) {
+  listSFDCCase( casenumber: Number ) {
     return this.apollo.watchQuery<HandoverResponse>( {
       variables: {
-        casenumber: casenumber
+        casenumber
       },
       query: listSFDCCase
     } ).result().then( result => result.data );

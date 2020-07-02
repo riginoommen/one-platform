@@ -15,7 +15,7 @@ const cleanTypeName = new ApolloLink( ( operation, forward ) => {
   } );
 } );
 
-export function createApollo ( httpLink: HttpLink ) {
+export function createApollo( httpLink: HttpLink ) {
   const link = ApolloLink.from( [ cleanTypeName, httpLink.create( { uri } ) ] );
   return {
     link,

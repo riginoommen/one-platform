@@ -12,33 +12,33 @@ import { environment } from '../../../environments/environment';
 export class ManageHandoverComponent implements OnInit {
   fetchingAccountName: boolean;
 
-  constructor (
+  constructor(
     private appService: AppService,
     private route: ActivatedRoute,
     private router: Router
   ) {
     this.route.params.subscribe( res => {
-      if ( res[ 'handover_id' ] ) {
-        this.handover_id = res[ 'handover_id' ];
+      if ( res.handover_id ) {
+        this.handover_id = res.handover_id;
       }
     } );
   }
   handover: any = {};
   cases: Array<any> = [ {} ];
   showSendModal = false;
-  refreshStatus: boolean = false;
+  refreshStatus = false;
   handover_id: number;
   updationTime: string = moment().format( 'MMMM Do YYYY, h:mm' );
   userData = ( window as any )?.OpAuthHelper?.getUserInfo() || null;
   canEdit: boolean;
   initialNumberOfCases: number;
   buttonAction: String;
-  showToast: boolean = false;
-  toggleModal: boolean = false;
-  emailRecipient: EmailRecipient = <EmailRecipient> {};
+  showToast = false;
+  toggleModal = false;
+  emailRecipient: EmailRecipient = {} as EmailRecipient;
   environment: any = environment;
 
-  ngOnInit (): void {
+  ngOnInit(): void {
     if ( this.handover_id ) {
       this.canEdit = true;
       this.buttonAction = 'Update';
@@ -70,7 +70,7 @@ export class ManageHandoverComponent implements OnInit {
 
 
   // Method to Update the stats count in the form
-  setCountsView ( data ) {
+  setCountsView( data ) {
     this.handover.fts_count = data.fts_count;
     this.handover.rme_count = data.rme_count;
     this.handover.unassigned_count = data.unassigned_count;
@@ -84,7 +84,7 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Method to Update the handover stats based on the Handover Type
-  refreshCounts () {
+  refreshCounts() {
     this.refreshStatus = true;
     if ( this.handover.handover_type === 'Platform' ) {
       this.appService.getAllPlatformCounts().then( ( data ) => {
@@ -106,11 +106,11 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Add case to handover
-  addCase () {
+  addCase() {
     this.cases.push( {} );
   }
   // Delete case with the handover.
-  deleteCase ( caseDetail ) {
+  deleteCase( caseDetail ) {
     if ( caseDetail.case_id ) {
       this.appService.removeCase( caseDetail.case_id ).subscribe( response => {
         this.cases.splice( this.cases.indexOf( caseDetail ), 1 );
@@ -121,13 +121,13 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Helper Function to initalize getSBRNames & getAccountName methods
-  getCaseDetails ( case_no, index ) {
+  getCaseDetails( case_no, index ) {
     this.getSBRNames( case_no, index );
     this.getAccountName( case_no, index );
   }
 
   // Method to fetch the SBR Names associated with the case number
-  getSBRNames ( case_no, index ) {
+  getSBRNames( case_no, index ) {
     const sbrs = [];
     let sbr_names: String;
     this.appService.getSBRsByCase( case_no ).then( ( data ) => {
@@ -147,7 +147,7 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Method to fetch the Account Name from SFDC
-  getAccountName ( case_no, index ) {
+  getAccountName( case_no, index ) {
     this.fetchingAccountName = true;
     if ( isFinite( case_no ) && case_no > 0 ) {
       this.appService.listSFDCCase( case_no ).then( ( data ) => {
@@ -165,7 +165,7 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Method to create Handover
-  createHandover ( handover, cases ) {
+  createHandover( handover, cases ) {
     handover.handover_id = Number( moment().format( 'YYYYMMDDHHmmss' ) );
     handover.date = moment( new Date() ).format( 'YYYY-MM-DD HH:mm:ss' );
     handover.manager_id = this.userData?.uid || 'roommen';
@@ -186,7 +186,7 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Method to update Handover
-  updateHandover ( handover, cases ) {
+  updateHandover( handover, cases ) {
     const finalNumberOfCases: Number = cases.length;
     handover.date = moment( new Date( handover.date ) ).format( 'YYYY-MM-DD HH:mm:ss' );
     this.appService.updateHandover( handover ).subscribe( response => {
@@ -214,7 +214,7 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Method to delete Handover
-  deleteHandover ( handover, cases ) {
+  deleteHandover( handover, cases ) {
     this.buttonAction = 'Delete';
     this.appService.removeHandover( handover.handover_id ).subscribe( response => {
       this.showToast = true;
@@ -222,7 +222,7 @@ export class ManageHandoverComponent implements OnInit {
     } );
   }
 
-  setRecipents ( handover_type ) {
+  setRecipents( handover_type ) {
     if ( this.environment.production === true ) {
       if ( handover_type === 'Platform' ) {
         this.emailRecipient.to = 'support-delivery@redhat.com,sd-leadership@redhat.com';
@@ -241,7 +241,7 @@ export class ManageHandoverComponent implements OnInit {
   }
 
   // Method to initalize the email call
-  sendEmailModal ( emailRecipient ) {
+  sendEmailModal( emailRecipient ) {
     this.handover.date = this.handover.date || moment( new Date() ).format( 'YYYY-MM-DD HH:mm:ss' );
     this.handover.manager_id = this.userData?.uid || 'roommen';
     this.handover.manager_email = this.userData?.email || 'roommen@redhat.com';
@@ -251,7 +251,7 @@ export class ManageHandoverComponent implements OnInit {
     const email = {
       handover: this.handover,
       cases: this.cases,
-      emailRecipient: emailRecipient
+      emailRecipient
     };
     if ( this.canEdit ) {
       this.updateHandover( this.handover, this.cases );
