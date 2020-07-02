@@ -12,3 +12,12 @@
   font-weight: 100;
   font-size: 30px;
 }
+
+.desc-wrap {
+  word-wrap: break-word;
+}
+
+.details-btn {
+  background-color: var(--pf-c-button--m-tertiary--after--BorderColor);
+  color: var(--pf-c-button--m-primary--Color);
+}

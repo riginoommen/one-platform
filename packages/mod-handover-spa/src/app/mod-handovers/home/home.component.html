@@ -1,59 +1,21 @@
 <section class="block pf-u-mt-4xl">
 
   <div class="pf-l-grid pf-m-gutter">
-    <div class="pf-l-grid__item pf-m-4-col">
+    <div class="pf-l-grid__item pf-m-4-col" *ngFor="let handoverStat of handoverStats">
       <div class="pf-c-card" id="card-action-example-3">
         <div class="pf-c-card__header">
           <div class="pf-c-card__actions">
             <div class="count-number">
-              1727
+              {{ handoverStat.count }}
             </div>
           </div>
         </div>
-        <div class="pf-c-card__body" id="card-action-example-3-check-label">Handovers of 2020
+        <div class="pf-c-card__body" id="card-action-example-3-check-label">{{ handoverStat.label }}
           <div class="pf-c-progress pf-m-sm" id="progress-sm-example">
-            <div class="pf-c-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"
-              aria-describedby="progress-sm-example-description">
-              <div class="pf-c-progress__indicator" style="width:33%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="pf-l-grid__item pf-m-4-col">
-      <div class="pf-c-card" id="card-action-example-3">
-        <div class="pf-c-card__header">
-          <div class="pf-c-card__actions">
-            <div class="count-number">
-              10
-            </div>
-          </div>
-        </div>
-        <div class="pf-c-card__body" id="card-action-example-3-check-label">Platform
-          <div class="pf-c-progress pf-m-sm" id="progress-sm-example">
-            <div class="pf-c-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"
-              aria-describedby="progress-sm-example-description">
-              <div class="pf-c-progress__indicator" style="width:33%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="pf-l-grid__item pf-m-4-col">
-      <div class="pf-c-card" id="card-action-example-3">
-        <div class="pf-c-card__header">
-          <div class="pf-c-card__actions">
-            <div class="count-number">
-              7
-            </div>
-          </div>
-        </div>
-        <div class="pf-c-card__body" id="card-action-example-3-check-label">
-          Total Handovers
-          <div class="pf-c-progress pf-m-sm" id="progress-sm-example">
-            <div class="pf-c-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"
-              aria-describedby="progress-sm-example-description">
-              <div class="pf-c-progress__indicator" style="width:33%;"></div>
+            <div class="pf-c-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+              aria-valuenow="handoverStat.count " aria-describedby="progress-sm-example-description">
+              <div class="pf-c-progress__indicator" [style.background-color]="handoverStat.color"
+                [style.width]="this.percentCalculator(handoverStat.count, handoverStat.total) +'%'"></div>
             </div>
           </div>
         </div>
@@ -66,20 +28,10 @@
         <button class="pf-c-tabs__scroll-button" disabled aria-hidden="true" aria-label="Scroll left">
           <i class="fas fa-angle-left" aria-hidden="true"></i>
         </button>
-        <ul class="pf-c-tabs__list">
-          <li class="pf-c-tabs__item pf-m-current">
+        <ul class="pf-c-tabs__list" *ngFor="let tab of tabs">
+          <li class="pf-c-tabs__item" (click)="filterHandover(tab)" [ngClass]="{ 'pf-m-current': tab === activeTab }">
             <button class="pf-c-tabs__link" id="tabbed-platform-link">
-              <span class="pf-c-tabs__item-text">Platform</span>
-            </button>
-          </li>
-          <li class="pf-c-tabs__item">
-            <button class="pf-c-tabs__link" id="tabbed-ecs-link">
-              <span class="pf-c-tabs__item-text">ECS</span>
-            </button>
-          </li>
-          <li class="pf-c-tabs__item">
-            <button class="pf-c-tabs__link" id="tabbed-aps-link">
-              <span class="pf-c-tabs__item-text">APS</span>
+              <span class="pf-c-tabs__item-text">{{ tab }}</span>
             </button>
           </li>
         </ul>
@@ -90,63 +42,77 @@
     </div>
     <div class="pf-l-grid__item pf-m-2-col">
       <div class="pf-c-input-group">
-        <input class="pf-c-form-control" type="date" id="textInput9" name="textInput9"
-          aria-label="Date input example" />
+        <input class="pf-c-form-control" type="date" id="textInput9" name="textInput9" aria-label="Date input example"
+          [(ngModel)]="currentDate" (change)="getHandoversByDate(activeTab,currentDate)" />
       </div>
     </div>
     <div class="pf-l-grid__item pf-m-1-col">
       <button class="pf-c-button pf-m-primary" type="button" routerLink="new">Create Handover</button>
     </div>
   </div>
-  <div class="pf-l-grid pf-m-gutter pf-u-mt-lg">
-    <div class="pf-l-grid__item pf-m-6-col">
+  <div class="pf-l-grid pf-m-gutter pf-u-mt-lg" *ngIf="allHandoversByDate.length">
+    <div class="pf-l-grid__item pf-m-6-col" *ngFor="let handover of allHandoversByDate">
       <div class="pf-c-card pf-m-hoverable pf-m-compact" id="card-1">
         <div class="pf-c-card__title">
-          <p id="card-1-check-label">Summary</p>
+          <p id="card-1-check-label">{{ handover.handover_region }} Summary&nbsp;&nbsp;
+            <span class="pf-c-badge pf-m-unread pf-m-hoverable" [routerLink]="['edit', handover.handover_id ]">Edit
+            </span>
+            <button class="details-btn pf-u-float-right pf-c-button pf-m-small" type="button"
+              [routerLink]="['details', handover.handover_id]">View Details</button>
+          </p>
         </div>
         <div class="pf-c-card__body">
-          <p class="stat-name">Manager Name: <span>Hi</span></p>
-          <p class="stat-name">Handover Date: <span>Jun 19, 2020</span></p>
+          <p class="stat-name">Manager Name: <span><a href="mailto:{{ handover.manager_email }}">
+                {{ handover.manager_first_name }}&nbsp;{{ handover.manager_last_name }}</a></span></p>
+          <p class="stat-name">Handover Date: <span>{{ handover.date | date:'mediumDate' }}</span></p>
         </div>
         <div class="pf-c-card__body">
           <p class="stat-name">Handover Statistics</p>
           <div class="pf-l-grid pf-m-gutter">
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">FTS: <span>188</span></p>
+              <p class="stat-name">FTS: <span>{{ handover.fts_count || '0' }}</span></p>
             </div>
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">ACE: <span>0</span></p>
+              <p class="stat-name">ACE: <span>{{ handover.ace_count || '0' }}</span></p>
             </div>
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">RME: <span>1</span></p>
+              <p class="stat-name">RME: <span>{{ handover.rme_count || '0' }}</span></p>
             </div>
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">Unassigned: <span>26</span></p>
+              <p class="stat-name">Unassigned: <span>{{ handover.unassigned_count || '0' }}</span></p>
             </div>
           </div>
 
           <div class="pf-l-grid pf-m-gutter">
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">WoRH: <span>188</span></p>
+              <p class="stat-name">WoRH: <span>{{ handover.worh_count || '0' }}</span></p>
             </div>
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">WoC: <span>154</span></p>
+              <p class="stat-name">WoC: <span>{{ handover.woc_count || '0' }}</span></p>
             </div>
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">Unassigned NCQ: <span>13</span></p>
+              <p class="stat-name">Unassigned NCQ: <span>{{ handover.unassigned_ncq_sev_1_2_count || '0' }}</span></p>
             </div>
             <div class="pf-l-grid__item pf-m-3-col">
-              <p class="stat-name">Urgent Breaches: <span>13</span></p>
+              <p class="stat-name">Urgent Breaches: <span>{{ handover.urgent_severity_1_breaches_count || '0' }}</span>
+              </p>
             </div>
           </div>
         </div>
         <div class="pf-c-card__body">
-          <p class="stat-name">Handover Statistics</p>
-          <p>13</p>
-
-
+          <p class="stat-name">Handover Notes</p>
+          <p class="desc-wrap">
+            {{ (handover.handover_notes.length > 250)? (handover.handover_notes | slice:0:250)+'...':(handover.handover_notes)  || 'N/A'}}
+          </p>
         </div>
       </div>
+    </div>
+  </div>
+
+
+  <div class="pf-l-grid pf-m-gutter pf-u-mt-lg" *ngIf="!allHandoversByDate.length">
+    <div class="pf-u-display-flex pf-u-justify-content-center">
+      <div class="ws-example-flex-item"><strong>Handover data not yet available</strong></div>
     </div>
   </div>
 </section>

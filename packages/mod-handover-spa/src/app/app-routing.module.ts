@@ -7,19 +7,18 @@ import { ManageHandoverComponent } from './mod-handovers/manage-handover/manage-
 const routes: Routes = [
   {
     path: '',
-    redirectTo: '/mod-handovers',
-    pathMatch: 'full',
-  },
-  {
-    path: 'mod-handovers',
     component: HomeComponent,
   },
   {
-    path: 'mod-handovers/details',
+    path: 'details/:handover_id',
     component: ModDetailsComponent
   },
   {
-    path: 'mod-handovers/new',
+    path: 'new',
+    component: ManageHandoverComponent,
+  },
+  {
+    path: 'edit/:handover_id',
     component: ManageHandoverComponent,
   }
 ];

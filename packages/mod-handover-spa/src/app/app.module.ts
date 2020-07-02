@@ -7,7 +7,8 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './mod-handovers/home/home.component';
 import { ManageHandoverComponent } from './mod-handovers/manage-handover/manage-handover.component';
 import { ModDetailsComponent } from './mod-handovers/mod-details/mod-details.component';
-import { DpDatePickerModule } from 'ng2-date-picker';
+import { GraphQLModule } from './graphql.module';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule( {
   declarations: [
@@ -21,7 +22,8 @@ import { DpDatePickerModule } from 'ng2-date-picker';
     AppRoutingModule,
     FormsModule,
     CommonModule,
-    DpDatePickerModule,
+    GraphQLModule,
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [ AppComponent ]

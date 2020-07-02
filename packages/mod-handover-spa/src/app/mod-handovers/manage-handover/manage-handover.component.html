@@ -1,29 +1,258 @@
 <section class="block pf-u-mt-4xl">
-  {{handover | json}}
-  <form novalidate class="pf-c-form">
-    <div class="pf-c-select pf-m-expanded">
-      <span id="select-single-expanded-label" hidden>Choose one</span>
-      <button class="pf-c-select__toggle" type="button" id="select-single-expanded-toggle" aria-haspopup="true"
-        aria-expanded="true" aria-labelledby="select-single-expanded-label select-single-expanded-toggle">
-        <div class="pf-c-select__toggle-wrapper">
-          <span class="pf-c-select__toggle-text">Handover Type</span>
-        </div>
-        <span class="pf-c-select__toggle-arrow">
-          <i class="fas fa-caret-down" aria-hidden="true"></i>
-        </span>
-      </button>
-      <ul class="pf-c-select__menu" aria-labelledby="select-single-expanded-label" [(ngModel)]="handover.handover_type">
-        <li>
-          <button type="button" class="pf-c-select__menu-item" aria-pressed="false" value="l">Platform</button>
-        </li>
-        <li>
-          <button type="button" class="pf-c-select__menu-item" aria-pressed="false">Stopped</button>
-        </li>
-        <li>
-          <button type="button" class="pf-c-select__menu-item" aria-pressed="false">Down</button>
-        </li>
-      </ul>
+  <form #modForm="ngForm" class="pf-c-form">
+    <div class="pf-l-grid pf-m-gutter">
+      <div class="pf-l-grid__item pf-m-6-col">
+        <label for="handover_type">Handover Type <span class="red">*</span></label>
+        <select class="pf-c-form-control " id="handover_type" name="handoverType" aria-label="select handover type"
+          [(ngModel)]="handover.handover_type" (change)="refreshCounts()" required>
+          <option value="undefined" disabled>--Select Handover Type--</option>
+          <option value="Platform" selected>Platform</option>
+          <option value="Enterprise Cloud Support">Enterprise Cloud Support</option>
+          <option value="Application Platform Support">Application Platform Support</option>
+        </select>
+      </div>
+      <div class="pf-l-grid__item pf-m-6-col">
+        <label for="handover_region">Handover Region<span class="red">*</span></label>
+        <select class="pf-c-form-control " id="handover_region" name="handoverRegion"
+          aria-label="select handover region" [(ngModel)]="handover.handover_region" required>
+          <option value="undefined" disabled selected>--Select Handover Region--</option>
+          <option value="APAC-PNQ">APAC-PNQ</option>
+          <option value="PNQ-EMEA">PNQ-EMEA</option>
+          <option value="EMEA-NA">EMEA-NA</option>
+          <option value="NA-APAC">NA-APAC</option>
+          <option value="APAC-EMEA">APAC-EMEA</option>
+          <option value="NA-PNQ">NA-PNQ</option>
+          <option value="PNQ-NA">PNQ-NA</option>
+        </select>
+      </div>
     </div>
 
+    <div class="pf-l-grid pf-m-gutter" *ngIf="handover.handover_type === 'Application Platform Support'">
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="watchlist">Watchlist / Escalated Cases</label>
+        <input class="pf-c-form-control" type="text" [(ngModel)]="handover.watchlist"
+          placeholder="Watchlist / Escalated Cases" id="watchlist" aria-label="Watchlist / Escalated Cases"
+          name="watchlist" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="proactive_cases">Proactive Cases</label>
+        <input class="pf-c-form-control" type="text" [(ngModel)]="handover.proactive_cases"
+          placeholder="Proactive Cases" id="proactive_cases" aria-label="Proactive Cases" name="proactive_cases" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="sensitive_accounts">Sensitive Accounts</label>
+        <input class="pf-c-form-control" type="text" [(ngModel)]="handover.sensitive_accounts"
+          placeholder="Sensitive Accounts" id="sensitive_accounts" aria-label="Sensitive Accounts"
+          name="sensitive_accounts" />
+      </div>
+    </div>
+
+    <div class="pf-l-grid pf-m-gutter" *ngFor="let caseDetail of cases; index as i;">
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="case_no">Case Number<span class="red">*</span></label>
+        <input class="pf-c-form-control" type="text" [(ngModel)]="caseDetail.case_no" placeholder="Case Number"
+          id="case_no" aria-label="Case Number" name="case_no{{i}}" (blur)="getCaseDetails(caseDetail.case_no, i)"
+          required />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="account_name">Account Name<span class="red">*</span></label>
+        <input class="pf-c-form-control" type="text" [(ngModel)]="caseDetail.account_name" placeholder="Account Name"
+          id="account_name" aria-label="Account Name" [disabled]="fetchingAccountName" name="account_name{{i}}"
+          required />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="sbr_name">SBR(s)<span class="red">*</span></label>
+        <input class="pf-c-form-control" type="text" [(ngModel)]="caseDetail.sbr_names" placeholder="SBR Name(s)"
+          id="sbr_name" aria-label="SBR Name(s)" name="sbr_name{{i}}}" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-4-col">
+        <label for="case_type">Type<span class="red">*</span></label>
+        <select class="pf-c-form-control" id="case_type" name="case_type{{i}}" aria-label="select case type"
+          [(ngModel)]="caseDetail.case_type" required>
+          <option value="undefined" disabled selected>--Select Case Type--</option>
+          <option value="FTS">FTS</option>
+          <option value=" ACE">ACE</option>
+          <option value="IRT">IRT</option>
+          <option value=" RME">RME</option>
+          <option value="Proactive Case">Proactive Case</option>
+          <option value=" Case Needing Attention">Case Needing Attention</option>
+        </select>
+      </div>
+
+      <div class="pf-l-grid__item pf-m-7-col">
+        <label for="case_notes">Note(s)</label>
+        <textarea rows="1" class="pf-c-form-control pf-m-resize-vertical" name="case_notes{{i}}"
+          placeholder="Case Notes" [(ngModel)]="caseDetail.case_notes" aria-label="Case Notes"></textarea>
+      </div>
+
+      <div class="pf-l-grid__item pf-m-1-col">
+        <label for="clearBtn">&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <button class="pf-c-button pf-m-danger" name="removeCase{{i}}" type="button"
+          (click)="deleteCase(caseDetail);">Remove</button>
+      </div>
+    </div>
+
+    <div class="pf-l-grid pf-m-gutter">
+      <div class="pf-l-grid__item pf-m-12-col">
+        <button class="pf-c-button pf-m-primary" type="button" (click)="addCase();">Add Case</button>
+      </div>
+    </div>
+
+    <hr class="pf-c-divider" />
+
+    <div class="pf-l-grid pf-m-gutter">
+      <label for="handoverStats">
+        <h5>Handover Current stats as of {{ updationTime }}
+          <i class="fas fa-sync" *ngIf="refreshStatus"></i>
+        </h5>
+      </label>
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="ftsCount">FTS Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.fts_count" placeholder="0" id="ftsCount"
+          aria-label="FTS Count" name="ftsCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="irtCount">IRT Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.irt_count" placeholder="0" id="irtCount"
+          aria-label="IRT Count" name="irtCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="rmeCount">RME Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.rme_count" placeholder="0" id="rmeCount"
+          aria-label="RME Count" name="rmeCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="unassignedCount">Unassigned Cases Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.unassigned_count" placeholder="0"
+          id="unassignedCount" aria-label="unassigned count" name="unassignedCount" />
+      </div>
+    </div>
+
+    <div class="pf-l-grid pf-m-gutter">
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="worhCount">FTS WoRH Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.worh_count" placeholder="0" id="worhCount"
+          aria-label="FTS WoRH Count" name="worhCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="wocCount">FTS WoC Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.woc_count" placeholder="0" id="wocCount"
+          aria-label="FTS WoC Count" name="wocCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="urgentSeverity1BreachesCount">Unassigned NCQ [Sev 1 & 2] Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.unassigned_ncq_sev_1_2_count"
+          placeholder="0" id="urgentSeverity1BreachesCount" aria-label="Unassigned NCQ [Sev 1 & 2] Count"
+          name="urgentSeverity1BreachesCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="urgentSeverity1BreachesCount">Urgent Severity 1 Breaches Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.urgent_severity_1_breaches_count"
+          placeholder="0" id="urgentSeverity1BreachesCount" aria-label="Urgent Severity 1 Breaches Count"
+          name="urgentSeverity1BreachesCount" />
+      </div>
+    </div>
+
+    <div class="pf-l-grid pf-m-gutter">
+      <div class="pf-l-grid__item pf-m-3-col">
+        <label for="aceCount">ACE Count</label>
+        <input class="pf-c-form-control" type="number" [(ngModel)]="handover.ace_count" placeholder="0" id="aceCount"
+          aria-label="ACE Count" name="aceCount" />
+      </div>
+
+      <div class="pf-l-grid__item pf-m-9-col">
+        <br />
+        <button class="pf-c-button pf-m-tertiary pf-u-float-right" type="button" (click)="refreshCounts()">Refresh
+          Counts</button>
+      </div>
+    </div>
+
+    <hr class="pf-c-divider" />
+
+    <div class="pf-l-grid pf-m-gutter">
+      <div class="pf-l-grid__item pf-m-12-col">
+        <label for="handoverNotes">Handover Note(s)</label>
+        <textarea rows="2" class="pf-c-form-control" name="handoverNotes" [(ngModel)]="handover.handover_notes"
+          aria-label="Handover Notes"></textarea>
+      </div>
+    </div>
+    <hr class="pf-c-divider" />
+    <div class="pf-l-grid pf-m-gutter">
+      <div class="pf-l-grid__item pf-m-12-col">
+        <button class="pf-c-button pf-m-primary" *ngIf="!canEdit" type="button"
+          (click)="createHandover(handover, cases);" [disabled]="!modForm.valid">Create</button>
+
+        <button class="pf-c-button pf-m-primary" *ngIf="canEdit" (click)="updateHandover(handover, cases);"
+          [disabled]="!modForm.valid">Update</button>&nbsp;
+
+        <button class="pf-c-button pf-m-tertiary" [disabled]="!modForm.valid"
+          (click)="toggleModal=true;setRecipents(handover.handover_type)">{{ buttonAction }} and
+          Email</button>&nbsp;&nbsp;
+
+        <button class="pf-c-button pf-m-danger pf-u-float-right" *ngIf="canEdit"
+          (click)="deleteHandover(handover, cases);">Delete</button>
+      </div>
+    </div>
   </form>
+
+  <ul id="alert" class="pf-c-alert-group pf-m-toast" [hidden]='!showToast'>
+    <li class="pf-c-alert-group__item">
+      <div class="pf-c-alert pf-m-inline pf-m-success" aria-label="Success alert">
+        <div class="pf-c-alert__icon">
+          <i class="fas fa-fw fa-check-circle" aria-hidden="true"></i>
+        </div>
+        <h4 class="pf-c-alert__title">
+          <span class="pf-screen-reader">Success:</span>{{ buttonAction }}d Handover and Cases</h4>
+      </div>
+    </li>
+  </ul>
+
+  <div class="pf-c-backdrop" *ngIf="toggleModal">
+    <div class="pf-l-bullseye">
+      <div class="pf-c-modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-with-description-title"
+        aria-describedby="modal-with-description-description">
+        <button class="pf-c-button pf-m-plain" type="button" aria-label="Close" (click)="toggleModal = false">
+          <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+        <header class="pf-c-modal-box__header">
+          <h1 class="pf-c-modal-box__title" id="modal-with-description-title">Confirm Handover Email Details
+          </h1>
+          <div class="pf-c-modal-box__description" id="modal-with-description-description">- You may enter multiple
+            comma separated email addresses to send email to multiple recipients.</div>
+        </header>
+        <div class="pf-c-modal-box__body">
+
+          <div class="pf-l-grid pf-m-gutter">
+            <div class="pf-l-grid__item pf-m-6-col">
+              <label for="to">To</label>
+              <input class="pf-c-form-control" type="text" [(ngModel)]="emailRecipient.to" id="to" aria-label="To"
+                name="to" [(ngModel)]="emailRecipient.to" />
+            </div>
+
+            <div class="pf-l-grid__item pf-m-6-col">
+              <label for="css">CC</label>
+              <input class="pf-c-form-control" type="text" [(ngModel)]="emailRecipient.cc" id="cc" aria-label="CC"
+                name="cc" [(ngModel)]="emailRecipient.cc" />
+            </div>
+          </div>
+
+        </div>
+        <footer class="pf-c-modal-box__footer">
+          <button class="pf-c-button pf-m-primary" (click)="sendEmailModal(emailRecipient);">Send</button>
+        </footer>
+      </div>
+    </div>
+  </div>
+
 </section>
