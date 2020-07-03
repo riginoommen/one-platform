@@ -15,14 +15,14 @@ export class HomeComponent implements OnInit {
     { acronym: 'ECS', fullName: 'Enterprise Cloud Support' },
     { acronym: 'APS', fullName: 'Application Platform Support' },
   ];
-  loading: Boolean = true;
+  loading = true;
   allHandoversByDate: any = [];
   allHandovers: any = [];
   handoverList: any = [];
   handoverStats: HandoverStat[];
   activeTab: string;
-  currentYearCount: Number = 0;
-  activeTeamCount: Number = 0;
+  currentYearCount = 0;
+  activeTeamCount = 0;
 
   constructor(
     private appService: AppService,
@@ -66,7 +66,8 @@ export class HomeComponent implements OnInit {
     } );
     this.modTabsExpansion.map( ( item, index ) => {
       if ( item.acronym === tab ) {
-        this.activeTeamCount = this.handoverList.filter( handover => handover.handover_type === this.modTabsExpansion[ index ].fullName ).length;
+        this.activeTeamCount = this.handoverList.filter( handover =>
+          handover.handover_type === this.modTabsExpansion[ index ].fullName ).length;
       }
     } );
     this.handoverStats = [

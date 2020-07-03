@@ -28,7 +28,7 @@ export class AppService extends GraphQLModule {
   }
 
   // GraphQL Query to fetch the handover by handover_id
-  getHandover( handover_id: Number ) {
+  getHandover( handover_id: number ) {
     return this.apollo.watchQuery<HandoverResponse>( {
       variables: {
         handover_id: Number( handover_id )
@@ -38,7 +38,7 @@ export class AppService extends GraphQLModule {
   }
 
   // GraphQL Query to fetch the handover and its associated cases
-  getHandoverWithCases( handover_id: Number ) {
+  getHandoverWithCases( handover_id: number ) {
     return this.apollo.watchQuery<HandoverResponse>( {
       variables: {
         handover_id: Number( handover_id )
@@ -94,7 +94,7 @@ export class AppService extends GraphQLModule {
       .pipe( map( ( result: any ) => result.data.updateCase ) );
   }
   // GraphQL Mutation to remove case
-  removeCase( case_id: Number ) {
+  removeCase( case_id: number ) {
     return this.apollo.mutate<HandoverResponse>( {
       variables: { case_id }, mutation: removeCase
     } );
@@ -106,7 +106,7 @@ export class AppService extends GraphQLModule {
       .pipe( map( ( result: any ) => result.data ) );
   }
   // GraphQL Mutation to remove handover
-  removeHandover( handover_id: Number ) {
+  removeHandover( handover_id: number ) {
     return this.apollo.mutate<HandoverResponse>( {
       variables: { handover_id }, mutation: removeHandover
     } );
@@ -132,7 +132,7 @@ export class AppService extends GraphQLModule {
   }
 
   // GraphQL Query to fetch the Case from SFDC
-  listSFDCCase( casenumber: Number ) {
+  listSFDCCase( casenumber: number ) {
     return this.apollo.watchQuery<HandoverResponse>( {
       variables: {
         casenumber
