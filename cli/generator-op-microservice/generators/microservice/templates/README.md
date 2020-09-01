@@ -8,10 +8,10 @@ Switch to the working directory
 
  `cd <%= serviceName %>-<% if (graphqlSupport) {%>service<%} else {%>integration<%}%>`.
 
-Copy Certificates
+Install Dependencies
 ------------
 
-  1. Copy the SSL paths to the `.env` file of `<%= serviceName %>` microservice.
+  1. Execute `npm install` for installing `node` dependencies.
 
 Start Microservice
 ------------
