@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Feedback } from './schema';
 const JiraApi = require( 'jira-client' );
 const fetch = require( 'node-fetch' );
-import { createJira } from './helpers';
+import { createJira, pushIndex } from './helpers';
 
 
 export const FeedbackResolver = {
@@ -214,6 +214,7 @@ export const FeedbackResolver = {
                 return createJira( issue ).then( ( jira: any ) => {
                   args.input.ticketID = jira.key;
                   return Feedback.update( fb, args.input ).then( ( feedback: any ) => {
+                    pushIndex( response, results[ 0 ]?.data?.getUsersBy[ 0 ] );
                     if ( feedback ) {
                       return Feedback.findById( response._id );
                     }
