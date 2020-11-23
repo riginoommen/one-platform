@@ -1,86 +1,190 @@
+scalar URI
+scalar JSON
 scalar DateTime
 
-type FeedbackUserType {
-  _id: String
-  name: String
+input GithubIssueInput {
+  body: String
   title: String
-  uid: String
-  rhatUUID: String
-  isActive: Boolean
+  repositoryId: ID
+}
+enum State {
+  """
+  An issue that is still open
+  """
+  OPEN
+  """
+  An issue that has been closed
+  """
+  CLOSED
 }
 
-type FeedbackWithUserType {
-  _id: String
-  description: String
-  ticketID: String
-  experience: String
-  spa: String
-  createdOn: DateTime
-  createdBy: FeedbackUserType
-  updatedOn: DateTime
-  updatedBy: FeedbackUserType
+type AuthorType {
+  login: String
+  avatarUrl: URI
+}
+
+type JiraAssigneeType {
+  name: String
+  email: String
+  uid: String
+}
+
+type GithubAssigneeType {
+  name: String
+  login: String
+  url: String
+}
+type PageInfoType {
+  endCursor: String
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+}
+
+type IssueGitHubType {
   title: String
-  feedbackType: String
+  body: String
+  url: URI
+  state: State
+  createdAt: DateTime
+  author: AuthorType
+  assignees: [GithubAssigneeType]
+}
+
+type GithubIssueType {
+  issue: IssueGitHubType
+}
+
+type JiraType {
+  key: String
+  lastUpdated: DateTime
+  summary: String
+  description: String
+  status: String
+  assignee: JiraAssigneeType
+}
+
+input JiraInput {
+  projectKey: String
+  summary: String
+  description: String
+}
+
+enum mode {
+  JIRA
+  GITHUB
+  GITLAB
+}
+
+enum category {
+  BUG
+  FEEDBACK
 }
 
 type FeedbackType {
-  _id: String
+  _id: ID
+  summary: String
   description: String
-  ticketID: String
   experience: String
-  spa: String
+  mode: mode
+  ticketUrl: String
+  appName: String
+  category: category
   createdOn: DateTime
   createdBy: String
   updatedOn: DateTime
   updatedBy: String
-  title: String
-  feedbackType: String
 }
 
 input FeedbackInput {
-  _id: String
+  _id: ID
+  summary: String
   description: String
-  ticketID: String
   experience: String
-  spa: String
+  mode: mode
+  ticketUrl: String
+  appName: String
+  category: category
   createdOn: DateTime
   createdBy: String
   updatedOn: DateTime
   updatedBy: String
+}
+
+type GithubResponseType {
+  issues: [IssueGitHubType]
+  pageInfo: PageInfoType
+}
+
+input GitlabIssueInput {
   title: String
-  feedbackType: String
+  description: String
+  projectPath: String
+  labels: [String]
 }
 
-type StatusType {
-  name: String
+type GitlabIssueType {
+  title: String
+  description: String
+  webUrl: String
+  labels: [String]
 }
 
-type AssigneeType {
-  name: String
-}
-
-type TicketType {
-  status: StatusType
-  assignee: AssigneeType
-  ticketID: String
+type GitlabResponseType {
+  issues: [IssueGitHubType]
+  pageInfo: PageInfoType
 }
 
 type Query {
-  # Fetches all Feedbacks
-  listFeedback: [FeedbackWithUserType]
-  # Fetches specific Feedback by its id
-  getFeedback(id: String!): FeedbackWithUserType
-  #Fetches Feedbacks by any property
-  getFeedbackBy(input: FeedbackInput!): [FeedbackWithUserType]
-  #Fetches tickets from jiraboard
-  getAllJiraIssues: [TicketType]
+  """
+  List Github Issue with issue number and project space parameter
+  """
+  listGithubIssue(name: String!,owner: String!, number: Int!):IssueGitHubType
+  """
+  List THe Github issues which is in project space
+  """
+  listGithubIssues(name: String!, owner: String!, first: Int, after: String, last: Int, before: String):GithubResponseType
+  """
+  List the Jira which is there in the project Space
+  """
+  listJiras(projectKey: String): [JiraType]
+  """
+  List All Feedbacks
+  """
+  listFeedbacks: [FeedbackType]
+  """
+  List the Feedback by _id parameter
+  """
+  listFeedback: FeedbackType
+  """
+  List THe Github issues which is in project space
+  """
+  listGitlabIssues( path: ID! ,first: Int, after: String ): GitlabResponseType
 }
 
 type Mutation {
-  # Add a new Feedback
-  addFeedback(input: FeedbackInput!): FeedbackType
-  # Update Feedback based on input
+  """
+  Create Issue on Github
+  """
+  createGithubIssue(input: GithubIssueInput): GithubIssueType
+  """
+  Create Issue on JIRA space
+  """
+  createJira(input: JiraInput): JiraType
+  """
+  Create Issue on Gitlab
+  """
+  createGitlabIssue(input: GitlabIssueInput): GitlabIssueType
+  """
+  Create Feedback and open tickets
+  """
+  createFeedback(input: FeedbackInput!): FeedbackType
+  """
+  Update Feedback infomation on database
+  """
   updateFeedback(input: FeedbackInput!): FeedbackType
-  # Delete specific Feedback by id
-  deleteFeedback(id: String!): FeedbackType
+  """
+  Delete feedback with _id parameter
+  """
+  deleteFeedback(_id: ID!): FeedbackType
 }
