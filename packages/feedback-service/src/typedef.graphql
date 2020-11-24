@@ -41,7 +41,7 @@ type PageInfoType {
   startCursor: String
 }
 
-type IssueGitHubType {
+type IssueGithubType {
   title: String
   body: String
   url: URI
@@ -52,7 +52,7 @@ type IssueGitHubType {
 }
 
 type GithubIssueType {
-  issue: IssueGitHubType
+  issue: IssueGithubType
 }
 
 type JiraType {
@@ -105,6 +105,8 @@ input FeedbackInput {
   ticketUrl: String
   appName: String
   category: category
+  repoID: String
+  projectKey: String
   createdOn: DateTime
   createdBy: String
   updatedOn: DateTime
@@ -112,7 +114,7 @@ input FeedbackInput {
 }
 
 type GithubResponseType {
-  issues: [IssueGitHubType]
+  issues: [IssueGithubType]
   pageInfo: PageInfoType
 }
 
@@ -131,15 +133,22 @@ type GitlabIssueType {
 }
 
 type GitlabResponseType {
-  issues: [IssueGitHubType]
+  issues: [IssueGithubType]
   pageInfo: PageInfoType
+}
+
+type IssueGitlabType {
+  title: String
+  description: String
+  webUrl: String
+  labels: [String]
 }
 
 type Query {
   """
   List Github Issue with issue number and project space parameter
   """
-  listGithubIssue(name: String!,owner: String!, number: Int!):IssueGitHubType
+  listGithubIssue(name: String!,owner: String!, number: Int!):IssueGithubType
   """
   List THe Github issues which is in project space
   """
@@ -157,9 +166,13 @@ type Query {
   """
   listFeedback: FeedbackType
   """
-  List THe Github issues which is in project space
+  List the Github issues which is in project space
   """
   listGitlabIssues( path: ID! ,first: Int, after: String ): GitlabResponseType
+  """
+  List Gitlab Issue with issue number and project space parameter
+  """
+  listGitlabIssue(path: String!, number: String):IssueGitlabType
 }
 
 type Mutation {

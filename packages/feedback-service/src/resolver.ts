@@ -28,7 +28,10 @@ export const FeedbackResolver = {
     },
     listGitlabIssues ( root: any, args: any, ctx: any ) {
       return FeedbackIntegrationHelper.listGitlabIssues( args );
-    }
+    },
+    listGitlabIssue ( root: any, args: any, ctx: any ) {
+      return FeedbackIntegrationHelper.listGitlabIssue( args );
+    },
   },
   Mutation: {
     createGithubIssue ( root: any, args: any, ctx: any ) {
@@ -57,23 +60,23 @@ export const FeedbackResolver = {
       let apiResponse = {};
       switch ( args.input.mode ) {
         case 'GITHUB':
-          const issueInput: object = {
+          const githubIssueInput: object = {
             'title': args.input.summary,
             'body': args.input.description,
-            'repositoryId': process.env.REPO_ID
+            'repositoryId': args.input.repoID || process.env.REPO_ID
           };
 
-          const githubResponse = await FeedbackIntegrationHelper.createGithubIssue( issueInput );
+          const githubResponse = await FeedbackIntegrationHelper.createGithubIssue( githubIssueInput );
           apiResponse = {
             ...args.input,
             ticketUrl: githubResponse.issue.url
           };
           break;
         case 'JIRA':
-          const issue: object = {
+          const jiraIssueInput: object = {
             'fields': {
               'project': {
-                'key': process.env.PROJECT_KEY
+                'key': args.input.projectKey || process.env.PROJECT_KEY
               },
               'summary': `${ args.input.summary }`,
               'description': `${ args.input.description }`,
@@ -83,13 +86,23 @@ export const FeedbackResolver = {
               },
             }
           };
-          const jiraResponse = await FeedbackIntegrationHelper.createJira( issue );
+          const jiraResponse = await FeedbackIntegrationHelper.createJira( jiraIssueInput );
           apiResponse = {
             ...args.input,
             ticketUrl: `https://${ process.env.JIRA_HOST }/browse/${ jiraResponse.key }`
           };
           break;
         case 'GITLAB':
+          const gitlabIssueInput: object = {
+            'title': args.input.summary,
+            'description': args.input.description,
+            'projectPath': "one-portal/one-portal-client",
+          };
+          const gitlabResponse = await FeedbackIntegrationHelper.createGitlabIssue( gitlabIssueInput );
+          apiResponse = {
+            ...args.input,
+            ticketUrl: gitlabResponse.webUrl
+          };
           break;
         default:
           console.warn( 'Integration not supported' );

@@ -294,6 +294,51 @@ class FeedbackHelper {
                 throw err;
             } );
     }
+
+    public listGitlabIssue ( params: JSON ) {
+        let headers = new Headers();
+        let body = JSON.stringify( {
+            query: `query ListGitlabIssue($path: ID!, $number: String) {
+                        project(fullPath: $path) {
+                            issue(iid: $number) {
+                            title
+                            description
+                            webUrl
+                            labels {
+                                edges {
+                                node {
+                                    title
+                                }
+                                }
+                            }
+                            assignees {
+                                nodes {
+                                name
+                                email
+                                webUrl
+                                }
+                            }
+                            }
+                        }
+                        }
+                    `,
+            variables: params
+        } );
+        headers.append( `Authorization`, `${ process.env.GITLAB_AUTH_TOKEN }` );
+        headers.append( `Content-Type`, `application/json` );
+        return fetch( `${ process.env.GITLAB_API }`, {
+            method: `POST`,
+            headers,
+            body: body,
+        } ).then( ( response: any ) => response.json() )
+            .then( ( result: any ) => {
+                result.data.project.issue.labels = result.data.project.issue.labels.edges.map( ( edge: any ) => edge.node.title);
+                return result.data.project.issue;
+            } )
+            .catch( ( err: any ) => {
+                throw err;
+            } );
+    }
 }
 
 export const FeedbackIntegrationHelper = FeedbackHelper.FeedbackHelper();
