@@ -1,23 +1,34 @@
-# Feedback
+# feedback-spa
 
-This module lists all existing feedback created by various users across the platform. An user can submit both feedback as well as bug reports here.
-Feedback list can be filter based on Opened/closed feedback type of feedback filter by module.
-User can get Feedback detail while clicking any of the feedback from feedback list and can see its detail can open it in gitlab
+## Project setup
+```
+yarn install
+```
 
-## How to use it
+### Compiles and hot-reloads for development
+```
+yarn serve
+```
 
-Listing page redirct to baseurl/feedback it will take to feedback/bug list page
-Provide feedback 1 redirect to listing page 2 click on "provide feedback" button choose bug/feedback give description
+### Compiles and minifies for production
+```
+yarn build
+```
 
-## How to maintain/update it
+### Run your unit tests
+```
+yarn test:unit
+```
 
-For any kind of update or maintain contact to anjnee.k.sharma@gmail.com.
-Technology used in this module is Angualr 8 and node js and Graphql
+### Run your end-to-end tests
+```
+yarn test:e2e
+```
 
-## Running unit tests
+### Lints and fixes files
+```
+yarn lint
+```
 
-Run `npx jest` to execute the unit tests via [Jest]
-
-## To test a specific file execute the command
-
-Run 'npx jest -- <file.spec>'
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
