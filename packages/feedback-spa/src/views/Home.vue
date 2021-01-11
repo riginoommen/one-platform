@@ -73,6 +73,54 @@
       <span v-for="feedback in filterFeedback(allFeedback)" v-bind:key="feedback._id">
       <ListFeedback :feedback="feedback" @openModal="openDetailsModal(feedback)"/>
       </span>
+
+      <div class="pf-c-pagination pf-m-compact">
+        <div class="pf-c-pagination__total-items">
+          <b>1 - 10</b>&nbsp;of&nbsp;
+          <b>37</b>
+        </div>
+        <div class="pf-c-options-menu">
+          <div class="pf-c-options-menu__toggle pf-m-text pf-m-plain">
+            <span class="pf-c-options-menu__toggle-text">
+              <b>1 - 10</b>&nbsp;of&nbsp;
+              <b>37</b>
+            </span>
+            <button class="pf-c-options-menu__toggle-button" id="pagination-options-menu-compact-example-toggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Items per page">
+              <span class="pf-c-options-menu__toggle-button-icon">
+                <i class="fas fa-caret-down" aria-hidden="true"></i>
+              </span>
+            </button>
+          </div>
+          <ul class="pf-c-options-menu__menu" aria-labelledby="pagination-options-menu-compact-example-toggle" hidden>
+            <li>
+              <button class="pf-c-options-menu__menu-item" type="button">5 per page</button>
+            </li>
+            <li>
+              <button class="pf-c-options-menu__menu-item" type="button">10 per page
+                <div class="pf-c-options-menu__menu-item-icon">
+                  <i class="fas fa-check" aria-hidden="true"></i>
+                </div>
+              </button>
+            </li>
+            <li>
+              <button class="pf-c-options-menu__menu-item" type="button">20 per page</button>
+            </li>
+          </ul>
+        </div>
+        <nav class="pf-c-pagination__nav" aria-label="Pagination">
+          <div class="pf-c-pagination__nav-control pf-m-prev">
+            <button class="pf-c-button pf-m-plain" type="button" disabled aria-label="Go to previous page">
+              <i class="fas fa-angle-left" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="pf-c-pagination__nav-control pf-m-next">
+            <button class="pf-c-button pf-m-plain" type="button" aria-label="Go to next page">
+              <i class="fas fa-angle-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </nav>
+      </div>
+
       <div v-if="!allFeedback">
         <span class="pf-u-text-align-center">No Feedback Found.</span>
       </div>
@@ -265,6 +313,7 @@ export default {
       if (this.searchText) {
         feedbackList = feedbackList.filter(this.matcher(new RegExp('\\b' + this.searchText + '\\b', 'i')))
       }
+      console.log()
       return feedbackList
     },
     uniqueModuleList: function (feedbackList) {
