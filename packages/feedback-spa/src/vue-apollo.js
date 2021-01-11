@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueApollo from 'vue-apollo'
 import { createApolloClient, restartWebsockets } from 'vue-cli-plugin-apollo/graphql-client'
+import { ApolloLink } from 'apollo-link'
 
 // Install the vue plugin
 Vue.use(VueApollo)
@@ -9,7 +10,16 @@ Vue.use(VueApollo)
 const AUTH_TOKEN = 'apollo-token'
 
 // Http endpoint
-const httpEndpoint = process.env.VUE_APP_GRAPHQL_HTTP || 'http://localhost:8081/graphql'
+const httpEndpoint = process.env.VUE_APP_GRAPHQL_HTTP || 'http://localhost:4000/graphql'
+const authMiddleware = new ApolloLink((operation, forward) => {
+  // Add the authorization to the headers
+  operation.setContext({
+    headers: {
+      Authorization: `Bearer ${window.OpAuthHelper.jwtToken}` || null
+    }
+  })
+  return forward(operation)
+})
 
 // Config
 const defaultOptions = {
@@ -26,13 +36,11 @@ const defaultOptions = {
   // You need to pass a `wsEndpoint` for this to work
   websocketsOnly: false,
   // Is being rendered on the server?
-  ssr: false
-
+  ssr: false,
   // Override default apollo link
   // note: don't override httpLink here, specify httpLink options in the
   // httpLinkOptions property of defaultOptions.
-  // link: myLink
-
+  link: authMiddleware
   // Override default cache
   // cache: myCache
 

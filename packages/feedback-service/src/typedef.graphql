@@ -2,78 +2,13 @@ scalar URI
 scalar JSON
 scalar DateTime
 
-input GithubIssueInput {
-  body: String
-  title: String
-  repositoryId: ID
-}
-enum State {
-  """
-  An issue that is still open
-  """
-  OPEN
-  """
-  An issue that has been closed
-  """
-  CLOSED
-}
 
-type AuthorType {
-  login: String
-  avatarUrl: URI
-}
-
-type JiraAssigneeType {
+type FeedbackUserProfileType {
   name: String
-  email: String
   uid: String
-}
-
-type GithubAssigneeType {
-  name: String
-  login: String
+  rhatUUID: String
+  email: String
   url: String
-}
-type PageInfoType {
-  endCursor: String
-  hasNextPage: Boolean
-  hasPreviousPage: Boolean
-  startCursor: String
-}
-
-type IssueGithubType {
-  title: String
-  body: String
-  url: URI
-  state: State
-  createdAt: DateTime
-  author: AuthorType
-  assignees: [GithubAssigneeType]
-}
-
-type GithubIssueType {
-  issue: IssueGithubType
-}
-
-type JiraType {
-  key: String
-  lastUpdated: DateTime
-  summary: String
-  description: String
-  status: String
-  assignee: JiraAssigneeType
-}
-
-input JiraInput {
-  projectKey: String
-  summary: String
-  description: String
-}
-
-enum mode {
-  JIRA
-  GITHUB
-  GITLAB
 }
 
 enum category {
@@ -86,14 +21,17 @@ type FeedbackType {
   summary: String
   description: String
   experience: String
-  mode: mode
+  config: String
+  state: String
   ticketUrl: String
-  appName: String
   category: category
+  source: String
+  module: String
+  assignee: FeedbackUserProfileType
   createdOn: DateTime
-  createdBy: String
+  createdBy: FeedbackUserProfileType
   updatedOn: DateTime
-  updatedBy: String
+  updatedBy: FeedbackUserProfileType
 }
 
 input FeedbackInput {
@@ -101,62 +39,16 @@ input FeedbackInput {
   summary: String
   description: String
   experience: String
-  mode: mode
+  config: String
   ticketUrl: String
-  appName: String
   category: category
-  repoID: String
-  projectKey: String
   createdOn: DateTime
   createdBy: String
   updatedOn: DateTime
   updatedBy: String
 }
 
-type GithubResponseType {
-  issues: [IssueGithubType]
-  pageInfo: PageInfoType
-}
-
-input GitlabIssueInput {
-  title: String
-  description: String
-  projectPath: String
-  labels: [String]
-}
-
-type GitlabIssueType {
-  title: String
-  description: String
-  webUrl: String
-  labels: [String]
-}
-
-type GitlabResponseType {
-  issues: [IssueGithubType]
-  pageInfo: PageInfoType
-}
-
-type IssueGitlabType {
-  title: String
-  description: String
-  webUrl: String
-  labels: [String]
-}
-
 type Query {
-  """
-  List Github Issue with issue number and project space parameter
-  """
-  listGithubIssue(name: String!,owner: String!, number: Int!):IssueGithubType
-  """
-  List THe Github issues which is in project space
-  """
-  listGithubIssues(name: String!, owner: String!, first: Int, after: String, last: Int, before: String):GithubResponseType
-  """
-  List the Jira which is there in the project Space
-  """
-  listJiras(projectKey: String): [JiraType]
   """
   List All Feedbacks
   """
@@ -164,30 +56,10 @@ type Query {
   """
   List the Feedback by _id parameter
   """
-  listFeedback: FeedbackType
-  """
-  List the Github issues which is in project space
-  """
-  listGitlabIssues( path: ID! ,first: Int, after: String ): GitlabResponseType
-  """
-  List Gitlab Issue with issue number and project space parameter
-  """
-  listGitlabIssue(path: String!, number: String):IssueGitlabType
+  listFeedback(_id: ID): FeedbackType
 }
 
 type Mutation {
-  """
-  Create Issue on Github
-  """
-  createGithubIssue(input: GithubIssueInput): GithubIssueType
-  """
-  Create Issue on JIRA space
-  """
-  createJira(input: JiraInput): JiraType
-  """
-  Create Issue on Gitlab
-  """
-  createGitlabIssue(input: GitlabIssueInput): GitlabIssueType
   """
   Create Feedback and open tickets
   """

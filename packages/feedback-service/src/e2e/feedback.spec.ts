@@ -10,29 +10,69 @@ import supertest from 'supertest';
 
 let request: supertest.SuperTest<supertest.Test>;
 const query = `
-  query List {
-    list {
-      message
+  query ListFeedbacks {
+    listFeedbacks {
+      _id
+      summary
+      experience
+      module
+      source
+      ticketUrl
+      state
+      assignee {
+        name
+        email
+      }
+      createdBy {
+        name
+        rhatUUID
+      }
+    }
+  }  
+
+  query ListFeedback($_id: ID) {
+    listFeedback(_id: $_id) {
+      _id
+      summary
+      experience
+      module
+      source
+      ticketUrl
+      state
+      assignee {
+        name
+        email
+      }
+      createdBy {
+        name
+        rhatUUID
+      }
     }
   }
-  query Get($id: String!) {
-    get(id: $id) {
-      message
+
+  mutation CreateFeedback($input: FeedbackInput!) {
+    createFeedback(input: $input) {
+      _id
+      summary
+      experience
+      module
+      source
+      ticketUrl
+      state
+      assignee {
+        name
+        email
+      }
+      createdBy {
+        name
+        rhatUUID
+      }
     }
   }
-  mutation Create($input: FeedbackInput) {
-    create(input: $input) {
-      message
-    }
-  }
-  mutation Update($input: FeedbackInput) {
-    update(input: $input) {
-      message
-    }
-  }
-  mutation Delete($id: String!) {
-    delete(id: $id) {
-      message
+
+  mutation DeleteFeedback($_id: ID!) {
+    deleteFeedback(_id: $_id) {
+      _id
     }
   }
 `;
@@ -45,50 +85,12 @@ afterAll(done => {
 });
 
 describe('Feedback microservice API Test', () => {
-  it('List should return all documents', done => {
+  it('addFeedback should create a feedback', done => {
     request
       .post('/graphql')
       .send({
         query: query,
-        operationName: 'List'
-      })
-      .expect(res => {
-        expect(res.body).not.toHaveProperty('errors');
-        expect(res.body).toHaveProperty('data');
-
-        expect(res.body.data.list[0].message).toEqual('GET API for Feedback microservice');
-      })
-      .end((err, res) => {
-        done(err);
-      });
-  });
-
-  it('Get should return a single matched document', done => {
-    request
-      .post('/graphql')
-      .send({
-        query: query,
-        operationName: 'Get',
-        variables: { id: 'mock_id' }
-
-      })
-      .expect(res => {
-        expect(res.body).not.toHaveProperty('errors');
-        expect(res.body).toHaveProperty('data');
-
-        expect(res.body.data.get.message).toEqual('GET by ID API for Feedback microservice');
-      })
-      .end((err, res) => {
-        done(err);
-      });
-  });
-
-  it('Create should create a document', done => {
-    request
-      .post('/graphql')
-      .send({
-        query: query,
-        operationName: 'Create',
+        operationName: 'CreateFeedback',
         variables: {
           input: mock
         }
@@ -96,51 +98,45 @@ describe('Feedback microservice API Test', () => {
       .expect(res => {
         expect(res.body).not.toHaveProperty('errors');
         expect(res.body).toHaveProperty('data');
-
-        expect(res.body.data).toHaveProperty('create');
-        expect(res.body.data.create).toMatchObject({'message': 'POST API for Feedback microservice'});
+        expect(res.body.data).toHaveProperty('createFeedback');
+        expect(res.body.data.createFeedback).toHaveProperty('_id', mock._id);
       })
       .end((err, res) => {
         done(err);
       });
   });
 
-  it('Update should update a document', done => {
+  it('List should return all Feedbacks', done => {
     request
       .post('/graphql')
       .send({
         query: query,
-        operationName: 'Update',
-        variables: {
-          input: mock
-        }
+        operationName: 'ListFeedbacks'
       })
       .expect(res => {
         expect(res.body).not.toHaveProperty('errors');
         expect(res.body).toHaveProperty('data');
-
-        expect(res.body.data).toHaveProperty('update');
-        expect(res.body.data.update).toMatchObject({message: 'PUT API for Feedback microservice'});
+        expect(res.body.data.listFeedbacks[0]).toHaveProperty('_id');
+        expect(res.body.data.listFeedbacks[0]).toHaveProperty('summary');
+        expect(res.body.data.listFeedbacks[0]).toHaveProperty('experience');
       })
       .end((err, res) => {
         done(err);
       });
   });
 
-  it('Delete should delete a document', done => {
+  it('deleteFeedback should delete a feedback', done => {
     request
       .post('/graphql')
       .send({
         query: query,
-        operationName: 'Delete',
-        variables: { id: 'mock_id' }
+        operationName: 'DeleteFeedback',
+        variables: { _id: mock._id}
       })
       .expect(res => {
         expect(res.body).not.toHaveProperty('errors');
         expect(res.body).toHaveProperty('data');
-
-        expect(res.body.data).toHaveProperty('delete');
-        expect(res.body.data.delete).toMatchObject({message: 'DELETE API for Feedback microservice'});
+        expect(res.body.data).toHaveProperty('deleteFeedback');
       })
       .end((err, res) => {
         done(err);

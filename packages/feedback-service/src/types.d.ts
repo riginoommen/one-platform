@@ -1,28 +1,32 @@
 declare module '*.graphql';
 declare module '*.json';
 
-declare enum mode {
-    JIRA='JIRA',
-    GITHUB='GITHUB',
-    GITLAB='GITLAB'
-}
-
 declare enum category {
     BUG='BUG',
     FEEDBACK='FEEDBACK'
 }
 
-// define your types here
+type FeedbackUserProfileType = {
+    name: string;
+    uid: string;
+    rhatUUID: string;
+    email: string;
+    url: string;
+}
+
 type FeedbackType = {
-    summary: String;
-    description: String;
-    experience: String;
-    mode: mode;
-    ticketUrl: String;
-    appName: String;
+    summary: string;
+    description: string;
+    experience: string;
+    config: string;
+    state: string;
+    source: string;
+    ticketUrl: string;
     category: category;
-    createdOn: String;
-    createdBy: String;
-    updatedOn: String;
-    updatedBy: String
+    module: string;
+    assignee: FeedbackUserProfileType
+    createdOn: string;
+    createdBy: string | FeedbackUserProfileType;
+    updatedOn: string;
+    updatedBy: string | FeedbackUserProfileType;
 }

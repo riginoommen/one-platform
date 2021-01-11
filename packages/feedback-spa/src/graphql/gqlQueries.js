@@ -5,6 +5,7 @@ export const ListFeedbacks = gql`
   listFeedbacks {
     _id
     summary
+    module
     description
     experience
     ticketUrl

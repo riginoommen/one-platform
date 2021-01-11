@@ -25,27 +25,115 @@
       </div>
     </div>
 
-    <div class="status-tabs pf-u-mt-xl">
-      <div class="status-box">
-        Open
-        <span class="badge op-badge op-open">
-          10
-        </span>
+    <div class="pf-l-grid pf-m-gutter pf-u-mt-xl">
+      <div class="pf-u-display-flex pf-m-8-col">
+        <div v-for="(state, index) in feedbackStates" v-bind:key="state.id">
+          <div class="status-box" v-on:click="setState(state.name, index)" v-bind:class="{'active': index === selectedStateIndex}">
+          {{ state.name }}
+            <span class="badge op-badge" v-bind:class="{'op-open': state.name === 'Open', 'op-close': state.name ==='Close'}" v-if="state.name !=='All'">{{ state.count }}</span>
+          </div>
+        </div>
+
+        <div class="pf-u-ml-md pf-c-dropdown pf-m-expanded">
+          <button class="pf-c-dropdown__toggle" type="button" id="dropdown-expanded-button" aria-expanded="true" v-on:click="enableToogle=!enableToogle">
+            <span class="pf-c-dropdown__toggle-text"><i class="fas fa-star fa-xs"></i>&nbsp;{{ selectedModule || 'Any'}}</span>
+            <span class="pf-c-dropdown__toggle-icon">
+              <i class="fas fa-caret-down" aria-hidden="true"></i>
+            </span>
+          </button>
+            <ul class="pf-c-dropdown__menu" aria-labelledby="dropdown-expanded-button" v-if="enableToogle">
+              <li>
+                <a class="pf-c-dropdown__menu-item" v-on:click="selectedModule='Any';enableToogle=!enableToogle">Any</a>
+              </li>
+              <li v-for="(module, index) in uniqueModuleList(allFeedback)" v-bind:key="index">
+                <a class="pf-c-dropdown__menu-item" v-on:click="selectedModule=module;enableToogle=!enableToogle">{{ module }}</a>
+              </li>
+            </ul>
+        </div>
       </div>
-      <div class="status-box">
-        Open
-        <span class="badge op-badge op-open">
-          10
-        </span>
+      <div class="pf-l-grid__item pf-m-1-col">
+        <button class="pf-c-button pf-m-secondary" type="button" v-on:click="csvExport(allFeedback)"><i class="fas fa-upload"></i>&nbsp;Export</button>
+      </div>
+      <div class="pf-u-ml-sm pf-l-grid__item pf-m-3-col">
+        <div class="pf-c-search-input">
+          <span class="pf-c-search-input__text">
+            <input class="pf-c-search-input__text-input" type="text" placeholder="Search Feedback" aria-label="Search Feedback" v-model="searchText"/>
+          </span>
+          <span class="pf-c-search-input__utilities">
+            <span class="pf-c-search-input__clear">
+              <button class="pf-c-button pf-m-plain" type="button" aria-label="Clear">
+                <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+              </button>
+            </span>
+          </span>
+        </div>
       </div>
     </div>
-
     <div class="pf-u-mt-xl">
-      <span v-for="feedback in allFeedback" v-bind:key="feedback._id">
-      <ListFeedback :feedback="feedback"/>
-    </span>
+      <span v-for="feedback in filterFeedback(allFeedback)" v-bind:key="feedback._id">
+      <ListFeedback :feedback="feedback" @openModal="openDetailsModal(feedback)"/>
+      </span>
+      <div v-if="!allFeedback">
+        <span class="pf-u-text-align-center">No Feedback Found.</span>
+      </div>
     </div>
 
+    <!-- Modal -->
+    <div class="pf-c-backdrop pf-l-bullseye" v-if="showModal">
+        <div class="pf-c-modal-box pf-m-md" role="dialog" aria-modal="true" aria-labelledby="modal-md-title" aria-describedby="modal-md-description">
+          <button class="pf-c-button pf-m-plain" type="button" aria-label="Close dialog" v-on:click="showModal = !showModal">
+          <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+          <header class="pf-c-modal-box__header">
+              <h1 class="pf-c-modal-box__title" id="modal-md-title">
+                <span class="pf-c-modal-box__title-icon">
+                  <i class="fas fa-fw fa-link" aria-hidden="true"></i>
+                </span>
+                <a class="link-color" :href="`${selectedFeedback.ticketUrl}`" target="_blank">
+                Issue - {{ selectedFeedback.ticketUrl.split( '/' )[ selectedFeedback.ticketUrl.split( '/' ).length - 1 ] }}</a></h1>
+          </header>
+          <div class="pf-c-modal-box__body" id="modal-md-description">
+            {{selectedFeedback.summary}}<br/>
+
+          <div class="pf-u-mt-sm pf-u-display-flex pf-l-grid pf-m-gutter">
+            <span class="pf-c-label">
+              <span class="pf-c-label__content">{{selectedFeedback.module.toUpperCase()}}</span>
+            </span>
+
+            <span class="pf-c-label pf-m-red">
+              <span class="pf-c-label__content">{{selectedFeedback.state.toUpperCase()}}</span>
+            </span>
+          </div>
+
+          <div class="pf-u-mt-sm pf-l-grid pf-m-gutter">
+            <div class=" pf-m-6-col">
+              Created By
+              <p><a v-bind:href="`mailto:${selectedFeedback.createdBy.uid}@redhat.com`">{{selectedFeedback.createdBy.name || 'N/A'}}</a></p>
+            </div>
+
+            <div class=" pf-m-6-col">
+              Assignee(s)
+              <p><a v-bind:href="`mailto:${selectedFeedback.assignee.email}`">{{selectedFeedback.assignee.name || 'N/A'}}</a></p>
+            </div>
+          </div>
+
+          <div class="pf-u-mt-sm pf-l-grid pf-m-gutter">
+            <div class=" pf-m-12-col">
+              Experience
+              <p>{{selectedFeedback.experience}}</p>
+            </div>
+          </div>
+
+          <div class="pf-u-mt-sm pf-l-grid pf-m-gutter">
+            <div class=" pf-m-12-col">
+              Description
+              <p>{{selectedFeedback.description}}</p>
+            </div>
+          </div>
+
+          </div>
+        </div>
+    </div>
   </div>
 
 <!-- Loader -->
@@ -62,6 +150,7 @@
 <script>
 import { ListFeedbacks } from '../graphql/gqlQueries'
 import ListFeedback from '@/components/ListFeedback.vue'
+import jsonexport from 'jsonexport'
 
 export default {
   name: 'Feedback',
@@ -72,9 +161,33 @@ export default {
     return {
       allFeedback: [],
       feedbackStats: [],
+      feedbackStates: [
+        {
+          id: 1,
+          name: 'All',
+          count: 0
+        },
+        {
+          id: 2,
+          name: 'Open',
+          count: 0
+        },
+        {
+          id: 3,
+          name: 'Close',
+          count: 0
+        }
+      ],
       loading: true,
       activeCategory: null,
-      selectedCategoryIndex: null
+      selectedCategoryIndex: null,
+      selectedStateIndex: null,
+      selectedState: null,
+      enableToogle: false,
+      selectedModule: null,
+      searchText: null,
+      showModal: false,
+      selectedFeedback: null
     }
   },
   async created () {
@@ -106,15 +219,72 @@ export default {
     ]
   },
   methods: {
-    setCategory: function (title, index) {
+    setCategory: function (category, index) {
       this.selectedCategoryIndex = index
-      if (title === 'Feedback') {
+      if (category === 'Feedback') {
         this.activeCategory = 'FEEDBACK'
-      } else if (title === 'Bug') {
+      } else if (category === 'Bug') {
         this.activeCategory = 'BUG'
       } else {
         this.activeCategory = null
       }
+    },
+    setState: function (state, index) {
+      this.selectedStateIndex = index
+      this.selectedState = state.toLowerCase()
+    },
+    matcher: function (expression) {
+      return (obj) => {
+        let found = false
+        Object.keys(obj).forEach((key) => {
+          if (!found) {
+            if ((typeof obj[key] === 'string') && expression.exec(obj[key])) {
+              found = true
+            }
+          }
+        })
+        return found
+      }
+    },
+    filterFeedback: function (feedbackList) {
+      if (this.activeCategory) {
+        feedbackList = feedbackList.filter(feedback => feedback.category === this.activeCategory)
+      }
+      this.feedbackStates[1].count = (feedbackList?.filter(feedback => !feedback.state.toLowerCase().includes('close'))).length
+      this.feedbackStates[2].count = (feedbackList.filter(feedback => feedback.state.toLowerCase().includes('close'))).length
+      if (this.selectedState) {
+        if (this.selectedState.includes('close')) {
+          feedbackList = feedbackList.filter(feedback => feedback.state.toLowerCase().includes('close'))
+        } else if (!this.selectedState.includes('close') && !this.selectedState.includes('all')) {
+          feedbackList = feedbackList.filter(feedback => !feedback.state.toLowerCase().includes('close'))
+        }
+      }
+      if (this.selectedModule && this.selectedModule !== 'Any') {
+        feedbackList = feedbackList.filter(feedback => feedback.module === this.selectedModule)
+      }
+      if (this.searchText) {
+        feedbackList = feedbackList.filter(this.matcher(new RegExp('\\b' + this.searchText + '\\b', 'i')))
+      }
+      return feedbackList
+    },
+    uniqueModuleList: function (feedbackList) {
+      return [...new Set(feedbackList.map(feedback => feedback.module))]
+    },
+    openDetailsModal: function (feedback) {
+      this.selectedFeedback = feedback
+      this.showModal = true
+    },
+    csvExport: function (arrData) {
+      jsonexport(arrData, (err, csv) => {
+        if (err) return console.error(err)
+        let csvContent = 'data:text/csv;charset=utf-8,'
+        csvContent += csv
+        const data = encodeURI(csvContent)
+        const link = document.createElement('a')
+        link.setAttribute('href', data)
+        link.setAttribute('download', 'Feedback.csv')
+        link.click()
+      })
     }
   }
 }
@@ -125,10 +295,6 @@ export default {
   color: rgb(33, 155, 224);
   font-weight: 100;
   font-size: 35px;
-  }
-
-.status-tabs {
-  display: flex;
   }
 
 .status-box {
@@ -142,12 +308,14 @@ export default {
   color: green;
   border: 1px solid green;
   border-radius: 1px;
+  padding: 2px
   }
 
 .op-badge.op-close {
   color: #6c757d;
   border: 1px solid rgba(108, 117, 125, 0.75);
   border-radius: 1px;
+  padding: 2px
   }
 
 .click-card {
@@ -163,4 +331,7 @@ export default {
   border: 1px solid rgba(22, 112, 230, 0.3);
   border-radius: 5px;
   }
+.link-color {
+  color: var(--pf-global--BackgroundColor--dark-200);
+}
 </style>

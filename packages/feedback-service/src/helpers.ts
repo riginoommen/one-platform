@@ -1,30 +1,23 @@
-// const fetch = require( 'node-fetch' );
+import { response } from 'express';
 import JiraApi from 'jira-client';
-const fetch = require( 'node-fetch' );
+const fetch = require('node-fetch');
+import * as _ from 'lodash';
 
 global.Headers = fetch.Headers;
 
-export const JiraApiClient = new JiraApi( {
-    protocol: 'https',
-    host: `${ process.env.JIRA_HOST }`,
-    username: process.env.JIRA_USERNAME,
-    password: process.env.JIRA_PASSWORD,
-    apiVersion: '2',
-    strictSSL: false
-} );
 class FeedbackHelper {
     private static FeedbackHelperInstance: FeedbackHelper;
-    constructor () { }
-    public static FeedbackHelper () {
-        if ( !FeedbackHelper.FeedbackHelperInstance ) {
+    constructor() { }
+    public static FeedbackHelper() {
+        if (!FeedbackHelper.FeedbackHelperInstance) {
             FeedbackHelper.FeedbackHelperInstance = new FeedbackHelper();
         }
         return FeedbackHelper.FeedbackHelperInstance;
     }
 
-    public createGithubIssue ( inputParam: object) {
+    public createGithubIssue(query: any) {
         let headers = new Headers();
-        let body = JSON.stringify( {
+        let body = JSON.stringify({
             query: `mutation CreateGithubIssue($input: CreateIssueInput!) {
                         createIssue(input: $input) {
                             issue {
@@ -38,155 +31,41 @@ class FeedbackHelper {
                                 }
                             }
                         }
-                        }`,
+                    }`,
             variables: {
-                "input": inputParam
+                "input": query.githubIssueInput
             }
-        } );
-        headers.append( `Authorization`, `${ process.env.GITHUB_AUTH_TOKEN }` );
-        headers.append( `Content-Type`, `application/json` );
-        return fetch( `${ process.env.GITHUB_API }`, {
+        });
+        headers.append(`Authorization`, `${process.env.GITHUB_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${query.sourceUrl || process.env.GITHUB_API}`, {
             method: `POST`,
             headers,
             body: body,
-        } ).then( ( response: any ) => response.json() )
-            .then( ( result: any ) => result.data.createIssue)
-            .catch( ( err: any ) => {
+        }).then((response: any) => response.json())
+            .then((result: any) => result.data.createIssue)
+            .catch((err: any) => {
                 throw err;
-            } );
+            });
     }
 
-    public listGithubIssue ( params:JSON ) {
-        let headers = new Headers();
-        let body = JSON.stringify( {
-            query: `query FetchIssue($name: String!, $owner: String!, $number: Int!) {
-                    repository(name: $name, owner: $owner) {
-                        issue(number: $number) {
-                        url
-                        title
-                        body
-                        state
-                        author {
-                            login
-                            avatarUrl
-                        }
-                        assignees(first:100) {
-                            nodes {
-                            name
-                            login
-                            url
-                            }
-                        }
-                        }
-                    }
-                    }
-                    `,
-            variables: params
-        } );
-        headers.append( `Authorization`, `${ process.env.GITHUB_AUTH_TOKEN }` );
-        headers.append( `Content-Type`, `application/json` );
-        return fetch( `${ process.env.GITHUB_API }`, {
-            method: `POST`,
-            headers,
-            body: body,
-        } ).then( ( response: any ) => response.json() )
-            .then( ( result: any ) => {
-                result.data.repository.issue.assignees = result.data.repository.issue.assignees.nodes.map( ( assignee: object ) => assignee );
-                return result.data.repository.issue;
-            } )
-            .catch( ( err: any ) => {
-                throw err;
-            } );
-    }
-
-    public listGithubIssues ( params: JSON ) {
-        let headers = new Headers();
-        let body = JSON.stringify( {
-            query: `query FetchGithubIssues($name: String!, $owner: String!, $first: Int, $after: String, $last: Int, $before: String) {
-                    repository(name: $name, owner: $owner) {
-                        issues(states: [OPEN, CLOSED], first: $first, after: $after, last: $last, before: $before) {
-                         pageInfo {
-                             endCursor
-                             hasNextPage
-                             hasPreviousPage
-                             startCursor
-                        }
-                        edges {
-                            node {
-                                createdAt
-                                title
-                                body
-                                url
-                                repository {
-                                    name
-                                }
-                                assignees(first:100) {
-                                    nodes {
-                                    name
-                                    login
-                                    url
-                                    }
-                                }
-                            }
-                        }
-                        }
-                    }
-                    }
-                    `,
-            variables: params
-        } );
-        headers.append( `Authorization`, `${ process.env.GITHUB_AUTH_TOKEN }` );
-        headers.append( `Content-Type`, `application/json` );
-        return fetch( `${ process.env.GITHUB_API }`, {
-            method: `POST`,
-            headers,
-            body: body,
-        } ).then( ( response: any ) => response.json() )
-            .then( ( result: any ) => {
-                const issues =  result.data.repository.issues.edges.map( ( edge: any ) => {
-                    edge.node.assignees = edge?.node?.assignees?.nodes;
-                    return edge.node;
-                } );
-                return {
-                    'issues': issues,
-                    'pageInfo': result.data.repository.issues.pageInfo
-                };
-            } )
-            .catch( ( err: any ) => {
-                throw err;
-            } );
-    }
-
-    public createJira ( issue: Object ) {
-        return JiraApiClient.addNewIssue( issue );
-    }
-
-    public listJiras ( projectKey: String ) {
-        let jql = `project = ${ projectKey || process.env.PROJECT_KEY } AND labels = 'Reported-via-One-Platform'`;
-        return JiraApiClient.searchJira( jql ).then( response => {
-            const jiraList: Array<object> = [];
-            response.issues.map( ( jira: any ) => {
-                jiraList.push({
-                        'key': jira.key,
-                        'lastUpdated': jira.fields.updated,
-                        'summary': jira.fields.summary,
-                        'description': jira.fields.description,
-                        'status': jira.fields?.status?.name,
-                        'assignee': {
-                            'name': jira.fields?.assignee?.displayName || null,
-                            'email': jira.fields?.assignee?.emailAddress|| null,
-                            'uid': jira.fields?.assignee?.name || null,
-                        }
-                    }
-                 );
-            } );
-            return jiraList;
+    public createJira(query: any) {
+        const JiraApiClient = new JiraApi({
+            protocol: 'https',
+            host: `${query.sourceUrl || process.env.JIRA_HOST}`,
+            username: process.env.JIRA_USERNAME,
+            password: process.env.JIRA_PASSWORD,
+            apiVersion: '2',
+            strictSSL: false
+        });
+        return JiraApiClient.addNewIssue(query.jiraIssueInput).catch(err => {
+            throw err.message
         });
     }
 
-    public createGitlabIssue ( inputParam: Object ) {
+    public createGitlabIssue(query: any) {
         let headers = new Headers();
-        let body = JSON.stringify( {
+        let body = JSON.stringify({
             query: `mutation CreateGitlabIssue($input: CreateIssueInput!) {
                         createIssue(input: $input) {
                                 issue {
@@ -216,128 +95,196 @@ class FeedbackHelper {
                             }
                         }`,
             variables: {
-                "input": inputParam
+                "input": query.gitlabIssueInput
             }
-        } );
+        });
 
-        headers.append( `Authorization`, `${ process.env.GITLAB_AUTH_TOKEN }` );
-        headers.append( `Content-Type`, `application/json` );
-        return fetch( `${ process.env.GITLAB_API }`, {
+        headers.append(`Authorization`, `${process.env.GITLAB_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${query.sourceUrl || process.env.GITLAB_API}`, {
             method: `POST`,
             headers,
             body: body,
-        } ).then( ( response: any ) => response.json() )
-            .then( ( result: any ) => {
-                result.data.createIssue.issue.labels = result?.data?.createIssue?.issue?.labels?.edges.map( ( label: any ) => label.node.title );
+        }).then((response: any) => response.json())
+            .then((result: any) => {
+                result.data.createIssue.issue.labels = result?.data?.createIssue?.issue?.labels?.edges.map((label: any) => label.node.title);
                 return result.data.createIssue.issue;
-            } )
-            .catch( ( err: any ) => {
+            })
+            .catch((err: any) => {
                 throw err;
-            } );
+            });
 
     }
 
-    public listGitlabIssues (params: JSON) {
+    public listHomeType() {
         let headers = new Headers();
-        let body = JSON.stringify( {
-            query: `query ListGitlabIssues($path: ID! ,$first: Int, $after: String) {
-                        project(fullPath: $path) {
-                            issues(first: $first, after: $after) {
-                            pageInfo {
-                                endCursor
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                            }
-                            nodes {
-                                title
-                                description
-                                webUrl
-                                labels {
-                                edges {
-                                    node {
-                                    title
-                                    }
-                                }
-                                }
-                                assignees {
-                                nodes {
-                                    name
-                                    email
-                                }
-                                }
-                            }
+        let body = JSON.stringify({
+            query: `query ListHomeType {
+                        listHomeType {
+                            _id
+                            name
+                            feedback{
+                            source
+                            isActive
+                            projectKey
+                            sourceUrl
                             }
                         }
-                        }
-                    `,
-            variables: params
-        } );
-        headers.append( `Authorization`, `${ process.env.GITLAB_AUTH_TOKEN }` );
-        headers.append( `Content-Type`, `application/json` );
-        return fetch( `${ process.env.GITLAB_API }`, {
+                    }`,
+            variables: null
+        });
+        headers.append(`Authorization`, `${process.env.GATEWAY_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${process.env.API_GATEWAY}`, {
             method: `POST`,
             headers,
             body: body,
-        } ).then( ( response: any ) => response.json() )
-            .then( ( result: any ) => {
-                const issues =  result?.data?.project?.issues?.nodes?.map( ( node: any ) => {
-                    node.labels = node.labels.edges.map( ( edge: any ) => edge.node.title );
-                    return node;
-                } );
-                return {
-                    'issues': issues,
-                    'pageInfo': result.data.project.issues.pageInfo
-                };
-            } )
-            .catch( ( err: any ) => {
+        }).then((response: any) => response.json())
+            .then((result: any) => result.data.listHomeType)
+            .catch((err: any) => {
                 throw err;
-            } );
+            });
     }
 
-    public listGitlabIssue ( params: JSON ) {
+    public getHomeType(params: any) {
         let headers = new Headers();
-        let body = JSON.stringify( {
-            query: `query ListGitlabIssue($path: ID!, $number: String) {
-                        project(fullPath: $path) {
-                            issue(iid: $number) {
-                            title
-                            description
-                            webUrl
-                            labels {
-                                edges {
-                                node {
-                                    title
-                                }
-                                }
-                            }
-                            assignees {
-                                nodes {
-                                name
-                                email
-                                webUrl
-                                }
-                            }
-                            }
-                        }
-                        }
-                    `,
+        let body = JSON.stringify({
+            query: `
+            query GetHomeType($_id: String!) {
+                getHomeType(_id: $_id) {
+                    _id
+                    name
+                    feedback {
+                    source
+                    sourceUrl
+                    isActive
+                    projectKey
+                    }
+                }
+            }`,
             variables: params
-        } );
-        headers.append( `Authorization`, `${ process.env.GITLAB_AUTH_TOKEN }` );
-        headers.append( `Content-Type`, `application/json` );
-        return fetch( `${ process.env.GITLAB_API }`, {
+        });
+        headers.append(`Authorization`, `${process.env.GATEWAY_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${process.env.API_GATEWAY}`, {
             method: `POST`,
             headers,
             body: body,
-        } ).then( ( response: any ) => response.json() )
-            .then( ( result: any ) => {
-                result.data.project.issue.labels = result.data.project.issue.labels.edges.map( ( edge: any ) => edge.node.title);
-                return result.data.project.issue;
-            } )
-            .catch( ( err: any ) => {
+        }).then((response: any) => response.json())
+            .then((result: any) => result.data.getHomeType)
+            .catch((err: any) => {
                 throw err;
-            } );
+            });
+    }
+
+    public getUserProfiles(userQuery: any) {
+        let headers = new Headers();
+        let body = JSON.stringify({
+            query: userQuery,
+            variables: null
+        });
+        headers.append(`Authorization`, `${process.env.GATEWAY_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${process.env.API_GATEWAY}`, {
+            method: `POST`,
+            headers,
+            body: body,
+        }).then((response: any) => response.json())
+            .then((result: any) => {
+                return Object.keys(result.data).map(key => result.data[key][0]);
+            })
+            .catch((err: any) => {
+                throw err;
+            });
+    }
+
+    public listGitlabIssues(gitlabQuery: any) {
+        let headers = new Headers();
+        let body = JSON.stringify({
+            query: gitlabQuery.query,
+            variables: null
+        });
+        headers.append(`Authorization`, `${process.env.GITLAB_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${gitlabQuery.sourceUrl || process.env.GITLAB_API}`, {
+            method: `POST`,
+            headers,
+            body: body,
+        }).then((response: any) => response.json())
+            .then((response: any) => {
+                return Object.keys(response.data).map(key => {
+                    response.data[key].issue.labels = response.data[key].issue.labels.edges.map((edge: any) => edge.node.title);
+                    response.data[key].issue.assignee = {
+                        name: response.data[key]?.issue?.assignees?.nodes[0]?.name || null,
+                        email: response.data[key]?.issue?.assignees?.nodes[0]?.email || null,
+                        url: response.data[key]?.issue?.assignees?.nodes[0]?.webUrl || null
+                    };
+                    return response.data[key]?.issue;
+                });
+            })
+            .catch((err: any) => {
+                throw err;
+            });
+    }
+
+    public listGithubIssues(githubQuery: any) {
+        let headers = new Headers();
+        let body = JSON.stringify({
+            query: githubQuery.query,
+            variables: null
+        });
+        headers.append(`Authorization`, `${process.env.GITHUB_AUTH_TOKEN}`);
+        headers.append(`Content-Type`, `application/json`);
+        return fetch(`${githubQuery.sourceUrl || process.env.GITHUB_API}`, {
+            method: `POST`,
+            headers,
+            body: body,
+        }).then((response: any) => response.json())
+            .then((response: any) => {
+                return Object.keys(response.data).map(key => {
+                    response.data[key].issue.assignee = {
+                        name: response.data[key]?.issue?.assignees?.nodes[0]?.name || null,
+                        email: response.data[key]?.issue?.assignees?.nodes[0]?.email || null,
+                        url: response.data[key]?.issue?.assignees?.nodes[0]?.url || null
+                    };
+                    return response.data[key].issue
+                });
+            })
+            .catch((err: any) => {
+                throw err;
+            });
+    }
+
+    public listJira(jiraQuery: any) {
+        const JiraApiClient = new JiraApi({
+            protocol: 'https',
+            host: `${jiraQuery.sourceUrl || process.env.JIRA_HOST}`,
+            username: process.env.JIRA_USERNAME,
+            password: process.env.JIRA_PASSWORD,
+            apiVersion: '2',
+            strictSSL: false
+        });
+        return JiraApiClient.searchJira(`issue = ${jiraQuery.query}`).then(response => {
+            const jiraList: Array<any> = [];
+            response.issues.map((jira: any) => {
+                jiraList.push({
+                    'key': jira.key,
+                    'url': `${(new URL(jira.self)).origin}/browse/${jira.key}`,
+                    'lastUpdated': jira.fields.updated,
+                    'summary': jira.fields.summary,
+                    'description': jira.fields.description,
+                    'state': jira.fields?.status?.name,
+                    'assignee': {
+                        'name': jira.fields?.assignee?.displayName || null,
+                        'email': jira.fields?.assignee?.emailAddress || null,
+                        'uid': jira.fields?.assignee?.name || null,
+                    }
+                });
+            });
+            return jiraList;
+        }).catch((err: Error) => {
+            throw err.message;
+        });
     }
 }
 

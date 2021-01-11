@@ -1,6 +1,6 @@
 <template>
-    <div class="feedback-item pf-u-p-md" >
-      <span class="pf-u-display-flex pf-u-flex-wrap">
+    <div class="feedback-item pf-u-p-md">
+      <span class="pf-u-display-flex pf-u-flex-wrap" v-on:click="isAccordionOpen = !isAccordionOpen">
         <span class="feedback-category-icon pf-u-display-flex pf-u-font-size-lg pf-u-align-items-center pf-u-justify-content-center">
           <i v-bind:class="{'fas fa-bug':feedback.category === 'BUG', 'fas fa-comment-alt':feedback.category === 'FEEDBACK'}"></i>
         </span>
@@ -9,18 +9,16 @@
             {{ feedback.summary || 'Nil' }}
           </div>
           <div class="feedback-description pf-u-font-size-sm">
-            {{ feedback.description || 'Nil' }}
+            <span v-if="!isAccordionOpen">{{ feedback.description | truncate }}</span>
+            <span v-if="isAccordionOpen">{{ feedback.description }}</span>
           </div>
 
           <div class="pf-u-display-flex">
             <span class="tag tag-module-name pf-u-display-flex pf-u-justify-content-center pf-u-align-items-center pf-u-font-weight-bold">
-              MoD
+              {{ feedback.module || 'General' }}
             </span>
-            <span class="tag tag-open pf-u-display-flex pf-u-justify-content-center pf-u-align-items-center pf-u-font-weight-bold">
-              open
-            </span>
-            <span class="tag tag-closed pf-u-display-flex pf-u-justify-content-center pf-u-align-items-center pf-u-font-weight-bold">
-              closed
+            <span class="tag pf-u-display-flex pf-u-justify-content-center pf-u-align-items-center pf-u-font-weight-bold" v-bind:class="{'tag-closed':feedback.state.toLowerCase().includes('close'), 'tag-open':!feedback.state.toLowerCase().includes('close')}">
+              {{ feedback.state || 'N/A' }}
             </span>
           </div>
         </div>
@@ -50,8 +48,9 @@
         <p class="pf-u-font-size-sm">
           Created By <br />
           <b>{{ feedback.createdBy.name }}</b>
-          at {{ feedback.createdOn }}</p>
-        <button class="pf-c-button pf-m-secondary pf-m-small" type="button">View Details</button>&nbsp;
+          at {{ feedback.createdOn | formatDate }}</p>
+          <i v-if="!feedback.createdBy.name">Not Assigned</i>
+        <button class="pf-c-button pf-m-secondary pf-m-small" type="button" @click='openModal()'>View Details</button>&nbsp;
         <a target="_blank" :href="`${feedback.ticketUrl}`">
         <button class="pf-c-button pf-m-tertiary pf-m-small" type="button">{{ feedback.source }} Link&nbsp;<i class="fas fa-external-link-alt"></i></button>
         </a>
@@ -67,6 +66,20 @@ export default {
   data () {
     return {
       isAccordionOpen: false
+    }
+  },
+  filters: {
+    formatDate: function (date) {
+      const formattedDate = new Date(date)
+      return `${formattedDate.getDay()}-${formattedDate.getMonth()}-${formattedDate.getFullYear()}`
+    },
+    truncate: function (text) {
+      return (text.length > 100 ? text.slice(0, 100) + '...' : text)
+    }
+  },
+  methods: {
+    openModal: function ($event) {
+      this.$emit('openModal')
     }
   }
 }
