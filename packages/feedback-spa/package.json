@@ -10,6 +10,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@one-platform/opc-footer": "^0.0.3-prerelease",
     "@one-platform/opc-header": "^0.0.2-prerelease",
     "apollo-link": "^1.2.14",
     "core-js": "^3.6.5",

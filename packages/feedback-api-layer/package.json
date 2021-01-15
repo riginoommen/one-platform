@@ -1,0 +1,23 @@
+{
+  "name": "feedback-api-layer",
+  "version": "0.1.0",
+  "description": "Feedback API Layer manages the communication with the endpoint of feedback microservice.",
+  "main": "./src/feedback.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "minify ./src/feedback.js > ./dist/feedback.min.js"
+  },
+  "keywords": [
+    "feedback",
+    "api",
+    "one-platform"
+  ],
+  "author": "Rigin Oommen",
+  "license": "MIT",
+  "devDependencies": {
+    "minify": "^6.0.1"
+  }
+}

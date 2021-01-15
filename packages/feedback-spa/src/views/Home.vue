@@ -70,59 +70,38 @@
       </div>
     </div>
     <div class="pf-u-mt-xl">
-      <span v-for="feedback in filterFeedback(allFeedback)" v-bind:key="feedback._id">
+      <span v-for="feedback in filterFeedback(allFeedback, this.pageSize, this.pageNumber)" v-bind:key="feedback._id">
       <ListFeedback :feedback="feedback" @openModal="openDetailsModal(feedback)"/>
       </span>
-
+      <!-- Pagination -->
       <div class="pf-c-pagination pf-m-compact">
-        <div class="pf-c-pagination__total-items">
-          <b>1 - 10</b>&nbsp;of&nbsp;
-          <b>37</b>
-        </div>
         <div class="pf-c-options-menu">
           <div class="pf-c-options-menu__toggle pf-m-text pf-m-plain">
             <span class="pf-c-options-menu__toggle-text">
-              <b>1 - 10</b>&nbsp;of&nbsp;
-              <b>37</b>
+              <b>{{ Number(pageNumber)+1 }} - {{ Number(pageNumber) + (Number(pageSize)) }}</b>&nbsp;of&nbsp;
+              <b>{{ this.allFeedback.length }}</b>
             </span>
-            <button class="pf-c-options-menu__toggle-button" id="pagination-options-menu-compact-example-toggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Items per page">
-              <span class="pf-c-options-menu__toggle-button-icon">
-                <i class="fas fa-caret-down" aria-hidden="true"></i>
-              </span>
-            </button>
           </div>
-          <ul class="pf-c-options-menu__menu" aria-labelledby="pagination-options-menu-compact-example-toggle" hidden>
-            <li>
-              <button class="pf-c-options-menu__menu-item" type="button">5 per page</button>
-            </li>
-            <li>
-              <button class="pf-c-options-menu__menu-item" type="button">10 per page
-                <div class="pf-c-options-menu__menu-item-icon">
-                  <i class="fas fa-check" aria-hidden="true"></i>
-                </div>
-              </button>
-            </li>
-            <li>
-              <button class="pf-c-options-menu__menu-item" type="button">20 per page</button>
-            </li>
-          </ul>
+          <select class="pf-c-form-control page-width" id="perPage" name="perPage" aria-label="per page entry" v-model="pageSize">
+            <option value="5">5 per page</option>
+            <option value="10" selected>10 per page</option>
+            <option value="20">20 per page</option>
+            <option value="50">50 per page</option>
+            <option value="100">100 per page</option>
+          </select>
         </div>
         <nav class="pf-c-pagination__nav" aria-label="Pagination">
           <div class="pf-c-pagination__nav-control pf-m-prev">
-            <button class="pf-c-button pf-m-plain" type="button" disabled aria-label="Go to previous page">
+            <button class="pf-c-button pf-m-plain" type="button" aria-label="Go to previous page" v-on:click="pageNumber = Number(pageNumber) - Number(pageSize)">
               <i class="fas fa-angle-left" aria-hidden="true"></i>
             </button>
           </div>
           <div class="pf-c-pagination__nav-control pf-m-next">
-            <button class="pf-c-button pf-m-plain" type="button" aria-label="Go to next page">
+            <button class="pf-c-button pf-m-plain" type="button" aria-label="Go to next page" v-on:click="pageNumber = Number(pageNumber) + Number(pageSize)">
               <i class="fas fa-angle-right" aria-hidden="true"></i>
             </button>
           </div>
         </nav>
-      </div>
-
-      <div v-if="!allFeedback">
-        <span class="pf-u-text-align-center">No Feedback Found.</span>
       </div>
     </div>
 
@@ -185,7 +164,7 @@
   </div>
 
 <!-- Loader -->
-  <div class="pf-u-text-align-center" v-if="loading">
+  <div class="pf-u-text-align-center pf-u-mt-4xl" v-if="loading">
     <span class="pf-c-spinner" role="progressbar" aria-valuetext="Loading...">
         <span class="pf-c-spinner__clipper"></span>
         <span class="pf-c-spinner__lead-ball"></span>
@@ -235,7 +214,9 @@ export default {
       selectedModule: null,
       searchText: null,
       showModal: false,
-      selectedFeedback: null
+      selectedFeedback: null,
+      pageSize: 10,
+      pageNumber: 0
     }
   },
   async created () {
@@ -294,7 +275,7 @@ export default {
         return found
       }
     },
-    filterFeedback: function (feedbackList) {
+    filterFeedback: function (feedbackList, pageSize, pageNumber) {
       if (this.activeCategory) {
         feedbackList = feedbackList.filter(feedback => feedback.category === this.activeCategory)
       }
@@ -313,7 +294,7 @@ export default {
       if (this.searchText) {
         feedbackList = feedbackList.filter(this.matcher(new RegExp('\\b' + this.searchText + '\\b', 'i')))
       }
-      console.log()
+      feedbackList = feedbackList.slice(Number(pageNumber), Number(pageNumber) + Number(pageSize))
       return feedbackList
     },
     uniqueModuleList: function (feedbackList) {
@@ -373,14 +354,20 @@ export default {
 }
 .click-card:hover {
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
-  }
+}
 
 .active {
   background: rgba(22, 112, 230, 0.1);
   border: 1px solid rgba(22, 112, 230, 0.3);
   border-radius: 5px;
-  }
+}
+
 .link-color {
   color: var(--pf-global--BackgroundColor--dark-200);
 }
+
+.page-width {
+  width: 125px;
+}
+
 </style>

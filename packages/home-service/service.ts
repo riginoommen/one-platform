@@ -58,7 +58,7 @@ const apollo = new ApolloServer( {
     path: error.path,
     ...error.extensions,
   } ),
-  extensions
+  // extensions
 } );
 
 /* Applying apollo middleware to express server */

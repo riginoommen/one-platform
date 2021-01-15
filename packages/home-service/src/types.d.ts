@@ -5,6 +5,20 @@ declare enum Role {
   ADMIN = "ADMIN",
   USER = "USER"
 }
+
+declare enum Source {
+  JIRA = "JIRA",
+  GITHUB = "GITHUB",
+  GITLAB = "GITLAB"
+}
+
+type Feedback = {
+  source: Source;
+  isActive: Boolean;
+  projectKey: String;
+  sourceUrl: String;
+};
+
 type PermissionsType = {
   roverGroup: string;
   role: Role;

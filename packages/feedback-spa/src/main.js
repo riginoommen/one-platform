@@ -4,6 +4,7 @@ import './registerServiceWorker'
 import router from './router'
 import store from './store'
 import '@one-platform/opc-header/dist/opc-header'
+import '@one-platform/opc-footer/dist/opc-footer'
 import { createProvider } from './vue-apollo'
 const jsonexport = require('jsonexport')
 
