@@ -24,6 +24,7 @@ type FeedbackType = {
     ticketUrl: string;
     category: category;
     module: string;
+    stackInfo: JSON;
     assignee: FeedbackUserProfileType
     createdOn: string;
     createdBy: string | FeedbackUserProfileType;

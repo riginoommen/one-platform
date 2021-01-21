@@ -1,5 +1,5 @@
 {
-  "name": "feedback-api-layer",
+  "name": "@riginoommen/feedback-api-layer",
   "version": "0.1.0",
   "description": "Feedback API Layer manages the communication with the endpoint of feedback microservice.",
   "main": "./src/feedback.js",
@@ -19,5 +19,9 @@
   "license": "MIT",
   "devDependencies": {
     "minify": "^6.0.1"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
   }
 }

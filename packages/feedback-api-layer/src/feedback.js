@@ -14,7 +14,7 @@
  * @author Rigin Oommen <riginoommen@gmail.com>
  *
  * Created at     : 2021-01-14 13:50:01
- * Last modified  : 2021-01-15 21:38:19
+ * Last modified  : 2021-01-18 12:31:12
  */
 
 sendFeedback = (apiUrl, authToken, feedbackInput) => {
@@ -47,3 +47,5 @@ sendFeedback = (apiUrl, authToken, feedbackInput) => {
         }
     });
 }
+
+module.exports.sendFeedback = this.sendFeedback;

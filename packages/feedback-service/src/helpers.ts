@@ -1,4 +1,3 @@
-import { response } from 'express';
 import JiraApi from 'jira-client';
 const fetch = require('node-fetch');
 import * as _ from 'lodash';
