@@ -182,82 +182,104 @@ export const FeedbackResolver = {
   },
   Mutation: {
     async createFeedback(root: any, args: any, ctx: any) {
-      let homeParam = {
-        _id: args.input.config
-      };
-      let homeResponse = {
-        feedback: {
-          source: '',
-          isActive: null,
-          projectKey: null,
-          sourceUrl: ''
-        }
-      };
-      let apiResponse = {};
-      (args.input.config) ? homeResponse = await FeedbackIntegrationHelper.getHomeType(homeParam) : '';
-      switch (homeResponse.feedback.source) {
-        case 'GITHUB':
-          const query = {
-            'githubIssueInput': {
-              'title': args.input.summary,
-              'body': args.input.description,
-              'repositoryId': homeResponse.feedback.projectKey || process.env.PROJECT_KEY
-            },
-            'sourceUrl': homeResponse.feedback.sourceUrl
-          };
-          const githubResponse = await FeedbackIntegrationHelper.createGithubIssue(query);
-          apiResponse = {
-            ...args.input,
-            ticketUrl: githubResponse.issue.url
-          };
-          break;
-        case 'JIRA':
-          const jiraQuery = {
-            'jiraIssueInput': {
-              'fields': {
-                'project': {
-                  'key': homeResponse.feedback.projectKey || process.env.PROJECT_KEY
-                },
-                'summary': `${args.input.summary}`,
-                'description': `${args.input.description}`,
-                'labels': ['Reported-via-One-Platform'],
-                'issuetype': {
-                  'name': 'Task'
-                },
-              }
-            },
-            'sourceUrl': homeResponse.feedback.sourceUrl
-          };
-          const jiraResponse = await FeedbackIntegrationHelper.createJira(jiraQuery);
-          apiResponse = {
-            ...args.input,
-            ticketUrl: `https://${process.env.JIRA_HOST}/browse/${jiraResponse.key}`,
-          };
-          break;
-        case 'GITLAB':
-          const gitlabQuery: object = {
-            'gitlabIssueInput': {
-              'title': args.input.summary,
-              'description': args.input.description,
-              'projectPath': homeResponse.feedback.projectKey || process.env.PROJECT_KEY
-            },
-            'sourceUrl': homeResponse.feedback.sourceUrl
-          }
-          const gitlabResponse = await FeedbackIntegrationHelper.createGitlabIssue(gitlabQuery);
-          apiResponse = {
-            ...args.input,
-            ticketUrl: gitlabResponse.webUrl
-          };
-          break;
-        default:
-          console.warn('Integration not Mentioned/Available');
-          apiResponse = {
-            ...args.input
-          }
+      if( !args.input.config ) {
+        let homeResponse: any = await FeedbackIntegrationHelper.listHomeType();
+        homeResponse = homeResponse.filter((response: any) => response.link === `/${args.input.stackInfo.path.split('/')[1]}`)[0];
+        args.input.config = homeResponse._id;
+      } else if( args.input.config ) {
+        homeResponse = await FeedbackIntegrationHelper.getHomeType() : '';
       }
-      return new Feedback(apiResponse).save()
-        .then((response: FeedbackType) => response)
-        .catch((error: Error) => error);
+      let apiResponse = {};
+      let descriptionTemplate = `
+${(args.input?.stackInfo?.error) ? `Error: ${args.input?.stackInfo?.error}` : ``}
+${ (args.input?.stackInfo?.stack || args.input?.stackInfo?.path) ? `
+Browser Information
+___________________
+`:``}
+${(args.input?.stackInfo?.stack) ? `Stack - ${args.input?.stackInfo?.stack}` : ``}
+${(args.input?.stackInfo?.path) ? `URL - ${args.input?.stackInfo?.path}` : ``}
+`
+      if (!args.input.description) {
+        args.input.description = descriptionTemplate;
+      } else if (args.input.description) {
+        args.input.description = args.input.description.concat(descriptionTemplate)
+      }
+      console.log(args.input.description);
+      // let homeParam = {
+      //   _id: args.input.config
+      // };
+      // let homeResponse = {
+      //   feedback: {
+      //     source: '',
+      //     isActive: null,
+      //     projectKey: null,
+      //     sourceUrl: ''
+      //   }
+      // };
+      // let apiResponse = {};
+      // switch (homeResponse.feedback.source) {
+      //   case 'GITHUB':
+      //     const query = {
+      //       'githubIssueInput': {
+      //         'title': args.input.summary,
+      //         'body': args.input.description,
+      //         'repositoryId': homeResponse.feedback.projectKey || process.env.PROJECT_KEY
+      //       },
+      //       'sourceUrl': homeResponse.feedback.sourceUrl
+      //     };
+      //     const githubResponse = await FeedbackIntegrationHelper.createGithubIssue(query);
+      //     apiResponse = {
+      //       ...args.input,
+      //       ticketUrl: githubResponse.issue.url
+      //     };
+      //     break;
+      //   case 'JIRA':
+      //     const jiraQuery = {
+      //       'jiraIssueInput': {
+      //         'fields': {
+      //           'project': {
+      //             'key': homeResponse.feedback.projectKey || process.env.PROJECT_KEY
+      //           },
+      //           'summary': `${args.input.summary}`,
+      //           'description': `${args.input.description}`,
+      //           'labels': ['Reported-via-One-Platform'],
+      //           'issuetype': {
+      //             'name': 'Task'
+      //           },
+      //         }
+      //       },
+      //       'sourceUrl': homeResponse.feedback.sourceUrl
+      //     };
+      //     const jiraResponse = await FeedbackIntegrationHelper.createJira(jiraQuery);
+      //     apiResponse = {
+      //       ...args.input,
+      //       ticketUrl: `https://${process.env.JIRA_HOST}/browse/${jiraResponse.key}`,
+      //     };
+      //     break;
+      //   case 'GITLAB':
+      //     const gitlabQuery: object = {
+      //       'gitlabIssueInput': {
+      //         'title': args.input.summary,
+      //         'description': args.input.description,
+      //         'projectPath': homeResponse.feedback.projectKey || process.env.PROJECT_KEY
+      //       },
+      //       'sourceUrl': homeResponse.feedback.sourceUrl
+      //     }
+      //     const gitlabResponse = await FeedbackIntegrationHelper.createGitlabIssue(gitlabQuery);
+      //     apiResponse = {
+      //       ...args.input,
+      //       ticketUrl: gitlabResponse.webUrl
+      //     };
+      //     break;
+      //   default:
+      //     console.warn('Integration not Mentioned/Available');
+      //     apiResponse = {
+      //       ...args.input
+      //     }
+      // }
+      // return new Feedback(apiResponse).save()
+      //   .then((response: FeedbackType) => response)
+      //   .catch((error: Error) => error);
     },
     updateFeedback(root: any, args: any, ctx: any) {
       return Feedback.findById(args.input._id)

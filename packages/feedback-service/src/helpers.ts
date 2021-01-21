@@ -123,11 +123,12 @@ class FeedbackHelper {
                         listHomeType {
                             _id
                             name
+                            link
                             feedback{
-                            source
-                            isActive
-                            projectKey
-                            sourceUrl
+                                source
+                                isActive
+                                projectKey
+                                sourceUrl
                             }
                         }
                     }`,
@@ -155,10 +156,10 @@ class FeedbackHelper {
                     _id
                     name
                     feedback {
-                    source
-                    sourceUrl
-                    isActive
-                    projectKey
+                        source
+                        sourceUrl
+                        isActive
+                        projectKey
                     }
                 }
             }`,

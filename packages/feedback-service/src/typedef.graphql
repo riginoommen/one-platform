@@ -38,6 +38,7 @@ input FeedbackInput {
   _id: ID
   summary: String
   description: String
+  stackInfo: JSON
   experience: String
   config: String
   ticketUrl: String
