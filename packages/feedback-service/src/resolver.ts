@@ -183,7 +183,17 @@ export const FeedbackResolver = {
   Mutation: {
     async createFeedback(root: any, args: any, ctx: any) {
       let homeResponse: any;
-      let apiResponse = {};
+      let apiResponse: any = {};
+      let userQuery = `query ListUsers {
+        rhatUUID_${(args.input.createdBy as string).replace(/-/g, '')}:getUsersBy(rhatUUID:"${args.input.createdBy}") {
+          name
+          title
+          uid
+          rhatUUID
+        }
+      }`;
+      let userData = await FeedbackIntegrationHelper.getUserProfiles(userQuery);
+
       if (!args.input.config && args.input?.stackInfo?.path) {
         homeResponse = await FeedbackIntegrationHelper.listHomeType();
         homeResponse = homeResponse.filter((response: any) => response.link === `/${args.input.stackInfo.path.split('/')[1]}`)[0];
@@ -202,6 +212,9 @@ ___________________
 `: ``}
 ${(args.input?.stackInfo?.stack) ? `Stack - ${args.input?.stackInfo?.stack}` : ``}
 ${(args.input?.stackInfo?.path) ? `URL - ${args.input?.stackInfo?.path}` : ``}
+
+Reported by 
+Name - ${userData[0].name}  
 `;
       if (!args.input.description) {
         args.input.description = descriptionTemplate;
@@ -268,20 +281,74 @@ ${(args.input?.stackInfo?.path) ? `URL - ${args.input?.stackInfo?.path}` : ``}
             ...args.input
           }
       }
+      const emailBody = `
+Hi ${userData[0].name},<br/><br/>
+Please find the details of the feedback we recieved as below:<br/><br/>
+Summary: ${apiResponse.summary}<br/><br/>
+Description: ${apiResponse.description}<br/><br/>
+You can track updates for your feedback at: ${apiResponse.ticketUrl}<br/><br/>
+
+Thanks<br/><br/>
+
+P.S.: This is an automated email. Please do not reply.
+`;
+      const emailData = {
+        from: `noreply@redhat.com`,
+        cc: `${userData[0].uid}@redhat.com`,
+        to: process.env.EMAIL_ADDRESS,
+        subject: `Thanks for submitting the ${apiResponse.category} ${(homeResponse.name) ? `for ${homeResponse.name}` : ''}.`,
+        body: emailBody
+      };
+      FeedbackIntegrationHelper.sendEmail(emailData);
       return new Feedback(apiResponse).save()
-        .then((response: any) => response)
+        .then(async (response: any) => {
+          response.createdBy = userData[0].name;
+          const formattedSearchResponse = FeedbackIntegrationHelper.formatSearchInput(response);
+          FeedbackIntegrationHelper.manageSearchIndex(formattedSearchResponse, 'index');
+          return response;
+        })
         .catch((error: Error) => error);
     },
     updateFeedback(root: any, args: any, ctx: any) {
       return Feedback.findById(args.input._id)
         .then((response: FeedbackType) => {
           return Object.assign(response, args.input).save()
-            .then((feedback: FeedbackType) => feedback);
+            .then(async (feedback: FeedbackType) => {
+              let userQuery = `query ListUsers {
+                rhatUUID_${(feedback.createdBy as string).replace(/-/g, '')}:getUsersBy(rhatUUID:"${feedback.createdBy}") {
+                  name
+                  title
+                  uid
+                  rhatUUID
+                }
+                ${(feedback.updatedBy) ? `
+                rhatUUID_${(feedback.updatedBy as string).replace(/-/g, '')}:getUsersBy(rhatUUID:"${feedback.updatedBy}") {
+                  name
+                  title
+                  uid
+                  rhatUUID
+                }
+              }
+              `: ``}
+              `;
+              let userData = await FeedbackIntegrationHelper.getUserProfiles(userQuery);
+              response.createdBy = userData.filter((user: any) => user.rhatUUID === feedback.createdBy)[0].name;
+              response.updatedBy = userData.filter((user: any) => user.rhatUUID === feedback.updatedBy)[0].name;
+              const formattedSearchResponse = FeedbackIntegrationHelper.formatSearchInput(response);
+              FeedbackIntegrationHelper.manageSearchIndex(formattedSearchResponse, 'index');
+              return feedback;
+            });
         }).catch((err: Error) => err);
     },
     deleteFeedback(root: any, args: any, ctx: any) {
       return Feedback.findByIdAndRemove(args._id)
-        .then((response: FeedbackType) => response)
+        .then((response: FeedbackType) => {
+          let id = {
+            'id': args._id
+          };
+          FeedbackIntegrationHelper.manageSearchIndex(id, 'delete');
+          return response;
+        })
         .catch((error: Error) => error);
     }
   }

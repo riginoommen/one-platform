@@ -7,7 +7,7 @@ declare enum category {
 }
 
 type FeedbackUserProfileType = {
-    name: string;
+    name: String;
     uid: string;
     rhatUUID: string;
     email: string;
