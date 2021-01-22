@@ -144,7 +144,7 @@
             </div>
           </div>
 
-          <div class="pf-u-mt-sm pf-l-grid pf-m-gutter">
+          <div class="pf-u-mt-sm pf-l-grid pf-m-gutter" v-if="selectedFeedback.experience">
             <div class=" pf-m-12-col">
               Experience
               <p>{{selectedFeedback.experience}}</p>
