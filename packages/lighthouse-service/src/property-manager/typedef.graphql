@@ -1,36 +1,23 @@
 scalar DateTime
 
-input PropertyAppInput {
+type PropertyAppType {
+  id: ID
   name: String
   branch: String
 }
 
-input AddPropertyAppInput {
+input PropertyAppInput {
   name: String!
   branch: String!
 }
 
 input PropertyInput {
-  name: String
-  description: String
-  projectId: String!
-  apps: [PropertyAppInput!]!
-}
-
-input AddPropertyInput {
   name: String!
   description: String
   projectId: String!
-  apps: [AddPropertyAppInput!]!
-  createdBy: String!
-}
-
-input UpdatePropertyInput {
-  name: String
-  description: String
-  projectId: String
   apps: [PropertyAppInput!]
-  updatedBy: String!
+  createdBy: String
+  updatedBy: String
 }
 
 type PropertyUserProfileType {
@@ -40,11 +27,6 @@ type PropertyUserProfileType {
   mail: String
 }
 
-type PropertyAppType {
-  id: ID
-  name: String
-  branch: String
-}
 
 type PropertyType {
   id: ID
@@ -60,43 +42,43 @@ type PropertyType {
 
 type Query {
   """
-  list all the properties
+  List all the properties
   """
-  fetchProperties(
+  listLHProperties(
     limit: Int
     offset: Int
     search: String
     user: String
   ): [PropertyType]
   """
-  to fetch just one property based on id
+  List property based on id
   """
-  fetchProperty(id: ID!): PropertyType
+  listLHProperty(id: ID!): PropertyType
 }
 
 type Mutation {
   """
-  create a new property
+  Create a new property
   """
-  createProperty(property: AddPropertyInput!): PropertyType
+  createLHProperty(property: PropertyInput!): PropertyType
   """
-  update a property
+  Update a property
   """
-  updateProperty(id: ID!, data: UpdatePropertyInput): PropertyType
+  updateLHProperty(id: ID!, data: PropertyInput): PropertyType
   """
-  delete a property
+  Delete a property
   """
-  deleteProperty(id: ID!): PropertyType
+  deleteLHProperty(id: ID!): PropertyType
   """
-  add an app to a property
+  Add an app to a property
   """
-  createApp(propertyId: ID!, appData: AddPropertyAppInput!): PropertyType
+  createLHApp(propertyId: ID!, appData: PropertyAppInput!): PropertyType
   """
-  update an app from a property
+  Update an app from a property
   """
-  updateApp(appId: ID!, appData: PropertyAppInput!): PropertyType
+  updateLHApp(appId: ID!, appData: PropertyAppInput!): PropertyType
   """
-  delete an app from a property
+  Delete an app from a property
   """
-  deleteApp(appId: ID!): PropertyType
+  deleteLHApp(appId: ID!): PropertyType
 }
